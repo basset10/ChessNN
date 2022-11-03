@@ -13,10 +13,6 @@ public class ClientMain extends HvlTemplateI{
 	private ClientGame game;
 
 	//Test!
-	
-	//Currently disconnects as soon as the server relays the other player lost connection.
-	//May need to add some buffer time in case of packet delay
-	
 
 	public static void main(String args[]) {
 		HvlChronology.registerChronology(HvlDirect.class);
