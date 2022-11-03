@@ -115,7 +115,7 @@ public class ClientPiece {
 			positiveVerticalTravel = false;
 		}	
 
-		if(player.color != g.player.color) {
+		if(player.color != g.player1.color) {
 			horizontalTravel = -horizontalTravel;
 			verticalTravel = -verticalTravel;
 			positiveVerticalTravel = !positiveVerticalTravel;
@@ -126,7 +126,7 @@ public class ClientPiece {
 
 	public void drawTranslation(ClientPlayer p, float delta, ClientGame g) {
 
-		if(p.color == g.player.color) {
+		if(p.color == g.player1.color) {
 			if(color == PieceColor.BLACK) {
 				hvlDraw(hvlQuadc((getPixelPosition(p).x + horizontalTravel), (getPixelPosition(p).y + verticalTravel), PIECE_SIZE, PIECE_SIZE), hvlTexture(type.blackTexture));
 			}else {

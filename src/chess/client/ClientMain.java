@@ -12,7 +12,10 @@ public class ClientMain extends HvlTemplateI{
 
 	private ClientGame game;
 
-	//Test!
+	//Convert to single player Vs. AI
+	//Remove all packet communication, process everything on client
+	//AI begins by calculating all legal moves and choosing one randomly
+	//Game can be Player v. AI or AI v. AI
 
 	public static void main(String args[]) {
 		HvlChronology.registerChronology(HvlDirect.class);

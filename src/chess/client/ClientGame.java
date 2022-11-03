@@ -26,6 +26,11 @@ import chess.common.Util;
 import chess.common.packet.PacketClientMove;
 
 public class ClientGame {
+	
+	//Always draw the board from Player 1's perspective.
+	//If a human player is present, they will always be player 1.
+	//Player 1 can be either white or black randomly
+	//Need to start over, create two separate game cases - PvP and PvAI
 
 	public static final int GAME_END_STATE_CONTINUE = 0;
 	public static final int GAME_END_STATE_CHECKMATE = 1;
@@ -33,8 +38,7 @@ public class ClientGame {
 
 	public enum GameState{
 		menu,
-		connecting,
-		connected;
+		playing;
 	}
 
 	public GameState state = GameState.menu;
@@ -43,9 +47,8 @@ public class ClientGame {
 	public boolean playersTurn = false;
 	public PlayerColor finalMove;
 	public ClientBoard board;
-	public ClientPlayer player;
-	public ClientPlayer opponent;
-	public HashMap<String, ClientPlayer> otherPlayers = new HashMap<String, ClientPlayer>();
+	public ClientPlayer player1;
+	public ClientPlayer player2;
 	public boolean boardInitialized = false;
 	public int moveCount = 0;
 
@@ -61,12 +64,11 @@ public class ClientGame {
 
 	public ClientGame(String id) {
 		this.id = id;
-		player = new ClientPlayer(id);
+		player1 = new ClientPlayer(id, true);
+		player2 = new ClientPlayer(id, true);
 
 		if(debug) {
-			player.color = PlayerColor.BLACK;
-			board = new ClientBoard(player);
-			boardInitialized = true;
+			
 		}
 	}
 
@@ -74,16 +76,15 @@ public class ClientGame {
 		for(ClientMove m : validMoves) {
 			//hvlDraw(hvlQuadc(Util.convertToPixelPositionX(m.x, player), Util.convertToPixelPositionY(m.y, player), 10, 10), hvlColor(0f, 1f, 0f));
 			if(board.isSpaceFree(m.x,m.y)) {
-				hvlDraw(hvlCirclec(Util.convertToPixelPositionX(m.x, player), Util.convertToPixelPositionY(m.y, player),10), hvlColor(.1f, .1f, .1f, .6f));
+				hvlDraw(hvlCirclec(Util.convertToPixelPositionX(m.x, player1), Util.convertToPixelPositionY(m.y, player1),10), hvlColor(.1f, .1f, .1f, .6f));
 			}else {
-				hvlDraw(hvlCirclec(Util.convertToPixelPositionX(m.x, player), Util.convertToPixelPositionY(m.y, player),10), hvlColor(.1f, .1f, .1f, .6f));
+				hvlDraw(hvlCirclec(Util.convertToPixelPositionX(m.x, player1), Util.convertToPixelPositionY(m.y, player1),10), hvlColor(.1f, .1f, .1f, .6f));
 			}
 
 		}
 	}
 
 	public void reset() {
-		otherPlayers = new HashMap<String, ClientPlayer>();
 		validMoves = new ArrayList<ClientMove>();
 		selectedPiecexPos = -1;
 		selectedPieceyPos = -1;
@@ -102,63 +103,39 @@ public class ClientGame {
 
 		if(state == GameState.menu) {
 			ClientMenuManager.manageMenus(this);
-		}else if(state == GameState.connecting) {
-			hvlFont(0).drawc("Connecting to server...", Display.getWidth()/2, Display.getHeight()/2, Color.white, 1f);
-			if(ClientNetworkManager.isConnected) {
-				System.out.println("Connection successful!");
-				state = GameState.connected;
-			}else {
-				System.out.println("Connection error! Could not contact server.");
-				state = GameState.menu;
-			}		
 		}
 		else if(state == GameState.connected) {
-			ClientNetworkTransfer.writeClientStatusPacket();
-			ClientNetworkTransfer.receiveServerStatusPacket(otherPlayers, id);
-
 			//Wait for second player before initializing game board
-			if(!boardInitialized) {
-				hvlFont(0).drawc("Connection established. Waiting for opponent...", Display.getWidth()/2, Display.getHeight()/2, Color.white, 1f);
-				hvlFont(0).drawc("ESC to cancel", Display.getWidth()/2, Display.getHeight()/2 + 40, Color.white, 0.7f);
-				//Check if ready packet is received from server...
-				ClientNetworkTransfer.connectToOpponent(this);				
-
-				if(Keyboard.isKeyDown(Keyboard.KEY_ESCAPE)) {
-					ClientNetworkManager.disconnect();
-					reset();
-				}
-			}else {
 
 				if(HvlDirect.getStatus() == HvlAgentStatus.DISCONNECTED) {
 					ClientNetworkManager.disconnect();
 					reset();
 				}
 
-				if(otherPlayers.size() < 1) {
-					reset();
-					//Send the player to a menu telling them they lost connection
-					ClientMenuManager.menu = MenuState.lostConnectionToOpponent;
-					ClientNetworkManager.disconnect();
-					System.out.println("Lost connection to opponent!");
-				}else {
-					board.update(delta, player);
+				
+				if(!boardInitialized) {
+					board.initialize(player1);
+					boardInitialized = true;
+				}
+					
+					board.update(delta, player1);
 					drawValidMoves();
 					for(ClientPiece p : board.activePieces) {
 						if(p.inMotion) {							
-							p.drawTranslation(player, delta, this);							
+							p.drawTranslation(player1, delta, this);							
 						}
 					}
 
 
 					//Receive and handle packets sent from the server.
-					ClientNetworkTransfer.handleOpponentMove(this);
+					//ClientNetworkTransfer.handleOpponentMove(this);
 
 					//Detect if a piece is clicked, highlight that piece's valid moves (if existing)
 					if(gameEndState == GAME_END_STATE_CONTINUE) {
 						if(inCheck) {
 							hvlFont(0).drawc("You are in check!", Display.getWidth()/2+450, Display.getHeight()/2, 1.2f);
 						}else {
-							if(ClientPieceLogic.getCheckState(board, opponent)) {
+							if(ClientPieceLogic.getCheckState(board, player2)) {
 								hvlFont(0).drawc("Opponent is in check", Display.getWidth()/2+450, Display.getHeight()/2, 1.2f);
 							}
 						}						
@@ -166,25 +143,25 @@ public class ClientGame {
 							hvlFont(0).drawc("It is your turn", Display.getWidth()/2, Display.getHeight()-20, 1.2f);
 							if(!promotionUI) {
 								for(ClientPiece p : board.activePieces) {
-									if((Util.getCursorX() >= p.getPixelPosition(player).x - ClientPiece.PIECE_SIZE/2
-											&& Util.getCursorX() <= p.getPixelPosition(player).x + ClientPiece.PIECE_SIZE/2
-											&& Util.getCursorY() >= p.getPixelPosition(player).y - ClientPiece.PIECE_SIZE/2
-											&& Util.getCursorY() <= p.getPixelPosition(player).y + ClientPiece.PIECE_SIZE/2)
-											&& Util.leftMouseClick() && p.color.toString().equals(player.color.toString())) {
+									if((Util.getCursorX() >= p.getPixelPosition(player1).x - ClientPiece.PIECE_SIZE/2
+											&& Util.getCursorX() <= p.getPixelPosition(player1).x + ClientPiece.PIECE_SIZE/2
+											&& Util.getCursorY() >= p.getPixelPosition(player1).y - ClientPiece.PIECE_SIZE/2
+											&& Util.getCursorY() <= p.getPixelPosition(player1).y + ClientPiece.PIECE_SIZE/2)
+											&& Util.leftMouseClick() && p.color.toString().equals(player1.color.toString())) {
 										System.out.println("You clicked a " + p.color + " " + p.type + " on space [ " + p.xPos + ", " + p.yPos + " ]");
 										selectedPiecexPos = p.xPos;
 										selectedPieceyPos = p.yPos;
-										validMoves = p.getAllValidMoves(board, player);
+										validMoves = p.getAllValidMoves(board, player1);
 									}									
 								}
 
 								//If a valid move is attempted as defined in ClientPieceLogic, execute the move.
 								for(ClientMove m : validMoves) {
 									boolean escape = false;
-									if((Util.getCursorX() >= Util.convertToPixelPositionX(m.x, player) - ClientBoardSpace.SPACE_SIZE/2
-											&& Util.getCursorX() <= Util.convertToPixelPositionX(m.x, player) + ClientBoardSpace.SPACE_SIZE/2
-											&& Util.getCursorY() >= Util.convertToPixelPositionY(m.y, player) - ClientBoardSpace.SPACE_SIZE/2
-											&& Util.getCursorY() <= Util.convertToPixelPositionY(m.y, player) + ClientBoardSpace.SPACE_SIZE/2)
+									if((Util.getCursorX() >= Util.convertToPixelPositionX(m.x, player1) - ClientBoardSpace.SPACE_SIZE/2
+											&& Util.getCursorX() <= Util.convertToPixelPositionX(m.x, player1) + ClientBoardSpace.SPACE_SIZE/2
+											&& Util.getCursorY() >= Util.convertToPixelPositionY(m.y, player1) - ClientBoardSpace.SPACE_SIZE/2
+											&& Util.getCursorY() <= Util.convertToPixelPositionY(m.y, player1) + ClientBoardSpace.SPACE_SIZE/2)
 											&& Util.leftMouseClick()) {
 
 										for(ClientPiece p : board.activePieces) {
@@ -202,7 +179,7 @@ public class ClientGame {
 												//Move piece to new square
 												//p.xPos = m.x;
 												//p.yPos = m.y;
-												p.translateToNewLocation(m.x, m.y, player, this);
+												p.translateToNewLocation(m.x, m.y, player1, this);
 												//p.inMotion = true;
 												if(inCheck) {
 													inCheck = false;
@@ -210,7 +187,7 @@ public class ClientGame {
 
 
 
-												if(player.color == PlayerColor.BLACK) {												
+												if(player1.color == PlayerColor.BLACK) {												
 													//If the move is a promotion, upgrade the pawn.
 													if(p.yPos == 7 && p.type==PieceType.PAWN) {
 														promotionUI = true;
@@ -267,7 +244,7 @@ public class ClientGame {
 												validMoves.clear();
 												escape = true;
 												if(!promotionUI) playersTurn = false;
-												if(player.color == PlayerColor.WHITE)
+												if(player1.color == PlayerColor.WHITE)
 													moveCount++;
 											}					
 											if(escape) {
@@ -290,7 +267,7 @@ public class ClientGame {
 								}
 							}else {
 								//if promotion UI...
-								ClientPromotionTypeUI.draw(player);
+								ClientPromotionTypeUI.draw(player1);
 								if(Util.getCursorX() <= Display.getWidth()/2 + 425+55+48 && Util.getCursorX() >= Display.getWidth()/2 + 425+55-48
 										&& Util.getCursorY() <= Display.getHeight()/2+55+48 && Util.getCursorY() >= Display.getHeight()/2+55-48
 										&& Util.leftMouseClick()) {
@@ -338,8 +315,8 @@ public class ClientGame {
 							hvlFont(0).drawc("Stalemate in " + moveCount + " moves.", Display.getWidth()/2, Display.getHeight()-20, 1.2f);
 						}
 					}
-				}
-			}
+				
+			
 		}
 	}
 
