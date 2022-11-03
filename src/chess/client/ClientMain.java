@@ -12,12 +12,7 @@ public class ClientMain extends HvlTemplateI{
 
 	private ClientGame game;
 
-	//Automatic draw when only kings are on the board
-	//50-move rule draw
-	//Vote to draw
-	//Full server indication
-	//CLEANING
-	//extras?
+	//Test!
 	
 	//Currently disconnects as soon as the server relays the other player lost connection.
 	//May need to add some buffer time in case of packet delay
