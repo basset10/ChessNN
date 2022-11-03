@@ -11,7 +11,6 @@ import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.Display;
 import org.newdawn.slick.Color;
 
-import chess.client.ClientNetworkManager;
 import chess.common.Util;
 import chess.client.ClientGame;
 import chess.client.ClientGame.GameState;
@@ -24,8 +23,7 @@ public class ClientMenuMain {
 	public ClientMenuMain(ClientGame game) {
 		buttons = new ArrayList<ClientButton>();
 		buttons.add(new ClientButton(300, 100, Display.getWidth()/2f, Display.getHeight()/2f+230, "Play", () ->{
-			game.state = GameState.connected;
-			ClientNetworkManager.connect("localhost", 25565);
+			game.state = GameState.playing;
 		}));
 	}
 

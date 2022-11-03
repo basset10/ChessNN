@@ -10,7 +10,6 @@ import org.lwjgl.opengl.Display;
 import org.newdawn.slick.Color;
 
 import chess.client.ClientGame;
-import chess.client.ClientNetworkManager;
 import chess.client.ClientGame.GameState;
 import chess.common.Util;
 

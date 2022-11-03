@@ -1,4 +1,4 @@
-package chess.client;
+ package chess.client;
 
 import static com.osreboot.ridhvl2.HvlStatics.hvlColor;
 import static com.osreboot.ridhvl2.HvlStatics.hvlDraw;
@@ -16,6 +16,7 @@ import org.newdawn.slick.Color;
 
 import com.osreboot.hvol2.direct.HvlDirect;
 import com.osreboot.hvol2.direct.HvlDirect.HvlAgentStatus;
+import com.osreboot.ridhvl2.HvlMath;
 import com.osreboot.ridhvl2.painter.HvlCircle;
 
 import chess.client.ClientPiece.PieceType;
@@ -39,6 +40,11 @@ public class ClientGame {
 	public enum GameState{
 		menu,
 		playing;
+	}
+	
+	public enum GameMode{
+		humanVAi,
+		AivAi;
 	}
 
 	public GameState state = GameState.menu;
@@ -66,6 +72,15 @@ public class ClientGame {
 		this.id = id;
 		player1 = new ClientPlayer(id, true);
 		player2 = new ClientPlayer(id, true);
+		if(HvlMath.randomInt(0, 1) == 0) {
+			player1.color = PlayerColor.WHITE;
+			player2.color = PlayerColor.BLACK;
+			playersTurn = true;
+		}else {
+			player1.color = PlayerColor.BLACK;
+			player2.color = PlayerColor.WHITE;
+			playersTurn = false;
+		}
 
 		if(debug) {
 			
@@ -90,13 +105,23 @@ public class ClientGame {
 		selectedPieceyPos = -1;
 		boardInitialized = false;
 		//normalInput = true;
-		playersTurn = false;
+		playersTurn = true;
 		state = GameState.menu;
 		inCheck = false;
 		gameEndState = GAME_END_STATE_CONTINUE;
 		finalMove = null;
 		moveCount = 0;
 		promotionUI = false;
+		if(HvlMath.randomInt(0, 1) == 0) {
+			player1.color = PlayerColor.WHITE;
+			player2.color = PlayerColor.BLACK;
+			playersTurn = true;
+		}else {
+			player1.color = PlayerColor.BLACK;
+			player2.color = PlayerColor.WHITE;
+			playersTurn = false;
+		}
+
 	}
 
 	public void update(float delta){
@@ -104,20 +129,12 @@ public class ClientGame {
 		if(state == GameState.menu) {
 			ClientMenuManager.manageMenus(this);
 		}
-		else if(state == GameState.connected) {
-			//Wait for second player before initializing game board
-
-				if(HvlDirect.getStatus() == HvlAgentStatus.DISCONNECTED) {
-					ClientNetworkManager.disconnect();
-					reset();
-				}
-
-				
+		else if(state == GameState.playing) {
 				if(!boardInitialized) {
+					board = new ClientBoard(player1);
 					board.initialize(player1);
 					boardInitialized = true;
 				}
-					
 					board.update(delta, player1);
 					drawValidMoves();
 					for(ClientPiece p : board.activePieces) {
@@ -126,19 +143,16 @@ public class ClientGame {
 						}
 					}
 
-
-					//Receive and handle packets sent from the server.
-					//ClientNetworkTransfer.handleOpponentMove(this);
-
 					//Detect if a piece is clicked, highlight that piece's valid moves (if existing)
 					if(gameEndState == GAME_END_STATE_CONTINUE) {
 						if(inCheck) {
-							hvlFont(0).drawc("You are in check!", Display.getWidth()/2+450, Display.getHeight()/2, 1.2f);
+							hvlFont(0).drawc("Player 1 is in check", Display.getWidth()/2+450, Display.getHeight()/2, 1.2f);
 						}else {
 							if(ClientPieceLogic.getCheckState(board, player2)) {
-								hvlFont(0).drawc("Opponent is in check", Display.getWidth()/2+450, Display.getHeight()/2, 1.2f);
+								hvlFont(0).drawc("Player 2 is in check", Display.getWidth()/2+450, Display.getHeight()/2, 1.2f);
 							}
-						}						
+						}
+						//Human player controls
 						if(playersTurn) {
 							hvlFont(0).drawc("It is your turn", Display.getWidth()/2, Display.getHeight()-20, 1.2f);
 							if(!promotionUI) {
@@ -249,8 +263,6 @@ public class ClientGame {
 											}					
 											if(escape) {
 												if(!promotionUI) {							
-													ClientNetworkTransfer.writeClientMovePacket(selectedPiecexPos, selectedPieceyPos, m.x, m.y, id,
-															m.castle, m.enPassant, PacketClientMove.PAWN_PROMOTION_FALSE);
 												}
 												break;
 											}
@@ -259,8 +271,6 @@ public class ClientGame {
 
 									if(escape) {
 										if(!promotionUI) {
-											ClientNetworkTransfer.writeClientMovePacket(selectedPiecexPos, selectedPieceyPos, m.x, m.y, id,
-													m.castle, m.enPassant, PacketClientMove.PAWN_PROMOTION_FALSE);
 										}
 										break;
 									}
@@ -271,8 +281,6 @@ public class ClientGame {
 								if(Util.getCursorX() <= Display.getWidth()/2 + 425+55+48 && Util.getCursorX() >= Display.getWidth()/2 + 425+55-48
 										&& Util.getCursorY() <= Display.getHeight()/2+55+48 && Util.getCursorY() >= Display.getHeight()/2+55-48
 										&& Util.leftMouseClick()) {
-									ClientNetworkTransfer.writeClientMovePacket(selectedPiecexPos, selectedPieceyPos, promotionX, promotionY, id,
-											false, false, PacketClientMove.PAWN_PROMOTION_QUEEN);
 									board.getPieceAt(promotionX, promotionY).type = PieceType.QUEEN;
 									promotionUI = false;
 									playersTurn = false;
@@ -280,8 +288,6 @@ public class ClientGame {
 								if(Util.getCursorX() <= Display.getWidth()/2 + 425+55+48 && Util.getCursorX() >= Display.getWidth()/2 + 425+55-48
 										&& Util.getCursorY() <= Display.getHeight()/2-55+48 && Util.getCursorY() >= Display.getHeight()/2-55-48
 										&& Util.leftMouseClick()) {
-									ClientNetworkTransfer.writeClientMovePacket(selectedPiecexPos, selectedPieceyPos, promotionX, promotionY, id,
-											false, false, PacketClientMove.PAWN_PROMOTION_KNIGHT);
 									board.getPieceAt(promotionX, promotionY).type = PieceType.KNIGHT;
 									promotionUI = false;
 									playersTurn = false;
@@ -289,8 +295,6 @@ public class ClientGame {
 								if(Util.getCursorX() <= Display.getWidth()/2 + 425-55+48 && Util.getCursorX() >= Display.getWidth()/2 + 425-55-48
 										&& Util.getCursorY() <= Display.getHeight()/2+55+48 && Util.getCursorY() >= Display.getHeight()/2+55-48
 										&& Util.leftMouseClick()) {
-									ClientNetworkTransfer.writeClientMovePacket(selectedPiecexPos, selectedPieceyPos, promotionX, promotionY, id,
-											false, false, PacketClientMove.PAWN_PROMOTION_ROOK);
 									board.getPieceAt(promotionX, promotionY).type = PieceType.ROOK;
 									promotionUI = false;
 									playersTurn = false;
@@ -298,14 +302,17 @@ public class ClientGame {
 								if(Util.getCursorX() <= Display.getWidth()/2 + 425-55+48 && Util.getCursorX() >= Display.getWidth()/2 + 425-55-48
 										&& Util.getCursorY() <= Display.getHeight()/2-55+48 && Util.getCursorY() >= Display.getHeight()/2-55-48
 										&& Util.leftMouseClick()) {
-									ClientNetworkTransfer.writeClientMovePacket(selectedPiecexPos, selectedPieceyPos, promotionX, promotionY, id,
-											false, false, PacketClientMove.PAWN_PROMOTION_BISHOP);
 									board.getPieceAt(promotionX, promotionY).type = PieceType.BISHOP;
 									promotionUI = false;
 									playersTurn = false;
 								}
 							}
 						}else {
+							//Pick and execute random AI move
+							//Change AI-Move to its own object, should contain the piece to move and the planned move space.
+							//Will be much easier than a HashMap
+							HashMap<ClientPiece, ClientMove> AiMove = player2.generateMove(board, player2);
+							AiMove..translateToNewLocation(moveToPlay.x, moveToPlay.y, player2, this);
 							hvlFont(0).drawc("Waiting for opponent", Display.getWidth()/2, Display.getHeight()-20, 1.2f);
 						}
 					}else {

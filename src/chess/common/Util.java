@@ -1,5 +1,7 @@
 package chess.common;
 
+import java.util.UUID;
+
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
 
@@ -11,6 +13,9 @@ public class Util {
 	private static boolean leftMouseState = false;
 	private static boolean leftMouseClick = false;
 
+	public static String generateUUID() {
+		return UUID.randomUUID().toString();
+	}
 
 	public static int getCursorX(){
 		return Mouse.getX();
@@ -35,7 +40,7 @@ public class Util {
 			return (yArg)*-ClientBoardSpace.SPACE_SIZE + Display.getHeight()/2 + ((ClientBoardSpace.SPACE_SIZE * 4) - ClientBoardSpace.SPACE_SIZE/2);
 		}
 	}
-	
+
 	public static void update() {
 		if(leftMouseClick) {
 			leftMouseClick = false;

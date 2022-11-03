@@ -30,14 +30,12 @@ public class ClientMain extends HvlTemplateI{
 	@Override
 	public void initialize() {
 		ClientLoader.loadTextures();
-		ClientNetworkManager.initialize();
-		game = new ClientGame(ClientNetworkManager.id);
+		game = new ClientGame(Util.generateUUID());
 		ClientMenuManager.initialize(game);
 	}
 
 	@Override
 	public void update(float delta) {
-		ClientNetworkManager.update(delta);
 		Util.update();
 		game.update(delta);		
 	}

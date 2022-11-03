@@ -10,7 +10,6 @@ import org.lwjgl.opengl.Display;
 import org.newdawn.slick.Color;
 
 import chess.client.ClientGame;
-import chess.client.ClientNetworkManager;
 import chess.client.ClientGame.GameState;
 import chess.client.menu.ClientMenuManager.MenuState;
 import chess.common.Util;
@@ -23,7 +22,6 @@ private ArrayList<ClientButton> buttons;
 		buttons = new ArrayList<ClientButton>();
 		buttons.add(new ClientButton(300, 100, 200, Display.getHeight()-100, "Return", () ->{
 			ClientMenuManager.menu = MenuState.main;
-			ClientNetworkManager.connect("localhost", 25565);
 		}));
 	}
 	
