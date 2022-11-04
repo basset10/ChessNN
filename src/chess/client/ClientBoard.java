@@ -33,8 +33,6 @@ public class ClientBoard {
 	}
 
 	public ClientBoard(ClientPlayer player) {
-		//Initialize the board with starting pieces.
-		initialize(player);
 	}
 
 	public void update(float delta, ClientPlayer player) {

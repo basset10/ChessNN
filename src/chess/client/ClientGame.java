@@ -308,13 +308,24 @@ public class ClientGame {
 								}
 							}
 						}else {
+							hvlFont(0).drawc("Waiting for opponent", Display.getWidth()/2, Display.getHeight()-20, 1.2f);
 							//Pick and execute random AI move
 							//Change AI-Move to its own object, should contain the piece to move and the planned move space.
 							//Will be much easier than a HashMap
-							HashMap<ClientPiece, ClientMove> AiMove = player2.generateMove(board, player2);
-							AiMove..translateToNewLocation(moveToPlay.x, moveToPlay.y, player2, this);
-							hvlFont(0).drawc("Waiting for opponent", Display.getWidth()/2, Display.getHeight()-20, 1.2f);
+							AiMove move = player2.generateMove(board, player2);
+							if(!board.isSpaceFree(move.move.x, move.move.y)) {
+								for(int i = 0; i < board.activePieces.size(); i++) {
+									if(board.activePieces.get(i).xPos == move.move.x && board.activePieces.get(i).yPos == move.move.y) {
+										board.claimedPieces.add(board.activePieces.get(i));
+										board.activePieces.remove(i);
+										break;
+									}
+								}														
+							}
+							move.piece.translateToNewLocation(move.move.x, move.move.y, player2, this);	
+							playersTurn = true;
 						}
+						System.out.println("Number of pieces: " + board.activePieces.size());
 					}else {
 						if(gameEndState == GAME_END_STATE_CHECKMATE) {
 							hvlFont(0).drawc("GG! Checkmate by " + finalMove.toString().toLowerCase() + " in " + moveCount + " moves.", Display.getWidth()/2, Display.getHeight()-20, 1.2f);					
