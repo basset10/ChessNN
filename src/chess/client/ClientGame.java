@@ -14,17 +14,13 @@ import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.Display;
 import org.newdawn.slick.Color;
 
-import com.osreboot.hvol2.direct.HvlDirect;
-import com.osreboot.hvol2.direct.HvlDirect.HvlAgentStatus;
 import com.osreboot.ridhvl2.HvlMath;
 import com.osreboot.ridhvl2.painter.HvlCircle;
 
 import chess.client.ClientPiece.PieceType;
 import chess.client.ClientPlayer.PlayerColor;
 import chess.client.menu.ClientMenuManager;
-import chess.client.menu.ClientMenuManager.MenuState;
 import chess.common.Util;
-import chess.common.packet.PacketClientMove;
 
 public class ClientGame {
 	
