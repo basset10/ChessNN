@@ -26,8 +26,11 @@ public class ClientGame {
 	
 	//Always draw the board from Player 1's perspective.
 	//If a human player is present, they will always be player 1.
-	//Player 1 can be either white or black randomly
-	//Need to start over, create two separate game cases - PvP and PvAI
+	//Need to start over, create two separate game cases - AIvAI and PvAI
+	
+	//Check after each move is made for a checkmate or stalemate condition and end the game.
+	//Allow AI to promote pawns
+	//Verify Castling and En Passant work correctly for AI
 
 	public static final int GAME_END_STATE_CONTINUE = 0;
 	public static final int GAME_END_STATE_CHECKMATE = 1;
@@ -58,8 +61,7 @@ public class ClientGame {
 	private boolean debug = false;
 	private ArrayList<ClientMove> validMoves = new ArrayList<ClientMove>();
 	private int selectedPiecexPos = -1;
-	private int selectedPieceyPos = -1;
-	//private boolean normalInput = true;			
+	private int selectedPieceyPos = -1;	
 	private boolean promotionUI = false;
 	private int promotionX = -1;
 	private int promotionY = -1;
@@ -319,6 +321,9 @@ public class ClientGame {
 								}														
 							}
 							move.piece.translateToNewLocation(move.move.x, move.move.y, player2, this);	
+							if(ClientPieceLogic.getCheckState(board, player1)){
+								inCheck = true;
+							}
 							playersTurn = true;
 						}
 						System.out.println("Number of pieces: " + board.activePieces.size());

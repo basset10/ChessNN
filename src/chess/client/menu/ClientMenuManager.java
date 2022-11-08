@@ -20,7 +20,6 @@ public class ClientMenuManager {
 	public static MenuState menu = MenuState.main;
 	
 	public static ClientMenuMain mainMenu;
-	public static ClientMenuLostConnection lostConnectionMenu = new ClientMenuLostConnection();
 	
 	public static enum MenuState{
 		main,
@@ -35,8 +34,6 @@ public class ClientMenuManager {
 	public static void manageMenus(ClientGame game) {
 		if(menu == MenuState.main) {
 			mainMenu.operate();
-		}else if(menu == MenuState.lostConnectionToOpponent) {
-			lostConnectionMenu.operate();
 		}
 	}
 	
