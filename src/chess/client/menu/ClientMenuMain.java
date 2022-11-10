@@ -28,8 +28,7 @@ public class ClientMenuMain {
 
 	public ClientMenuMain(ClientGame game) {
 		buttons = new ArrayList<ClientButton>();
-		buttons.add(new ClientButton(300, 100, Display.getWidth()/2f, Display.getHeight()/2f+100, "Play AI", () ->{
-			
+		buttons.add(new ClientButton(300, 100, Display.getWidth()/2f, Display.getHeight()/2f+100, "Play AI", () ->{			
 			game.state = GameState.playingHuman;
 		}));
 		buttons.add(new ClientButton(80, 80, Display.getWidth()/2f + 220, Display.getHeight()/2f+100, "", () ->{

@@ -70,7 +70,7 @@ public class ClientGame {
 		this.id = id;
 		player1 = new ClientPlayer(id, true);
 		player2 = new ClientPlayer(id, true);
-		
+
 
 		if(debug) {
 
@@ -94,9 +94,7 @@ public class ClientGame {
 		selectedPiecexPos = -1;
 		selectedPieceyPos = -1;
 		boardInitialized = false;
-		//normalInput = true;
-		playersTurn = true;
-		state = GameState.menu;
+		//state = GameState.menu;
 		inCheck = false;
 		gameEndState = GAME_END_STATE_CONTINUE;
 		finalMove = null;
@@ -129,7 +127,10 @@ public class ClientGame {
 		if(state == GameState.menu) {
 			ClientMenuManager.manageMenus(this);
 		}
-		else if(state == GameState.playingHuman) {
+		else if(state == GameState.playingHuman || state == GameState.postgame) {
+			if(state == GameState.postgame){
+				ClientMenuManager.manageMenus(this);		
+			}
 			if(!boardInitialized) {
 				if(ClientMenuMain.color == ClientMenuMain.ColorSelection.RANDOM) {
 					if(HvlMath.randomInt(0, 1) == 0) {
@@ -309,9 +310,13 @@ public class ClientGame {
 												System.out.println("CHECKMATE BY HUMAN!");
 												finalMove = player1.color;
 												gameEndState = GAME_END_STATE_CHECKMATE;
+												state = GameState.postgame;
+												ClientMenuManager.menu = ClientMenuManager.MenuState.postgame;
 											}else {
 												System.out.println("STALEMATE!");
 												gameEndState = GAME_END_STATE_STALEMATE;
+												state = GameState.postgame;
+												ClientMenuManager.menu = ClientMenuManager.MenuState.postgame;
 											}
 										}
 
@@ -469,11 +474,15 @@ public class ClientGame {
 							System.out.println("CHECKMATE BY AI!");
 							finalMove = player2.color;
 							gameEndState = GAME_END_STATE_CHECKMATE;
+							state = GameState.postgame;
+							ClientMenuManager.menu = ClientMenuManager.MenuState.postgame;
 						}
 					}else {
 						if(possibleMoves == 0) {
 							System.out.println("STALEMATE!");
 							gameEndState = GAME_END_STATE_STALEMATE;
+							state = GameState.postgame;
+							ClientMenuManager.menu = ClientMenuManager.MenuState.postgame;
 						}
 					}
 					playersTurn = true;
