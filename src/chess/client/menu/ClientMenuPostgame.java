@@ -17,30 +17,34 @@ import chess.client.ClientGame.GameState;
 import chess.client.ClientLoader;
 
 public class ClientMenuPostgame {
-	
+
 	private ArrayList<ClientButton> buttons;
 
 	public ClientMenuPostgame(ClientGame game) {
 		buttons = new ArrayList<ClientButton>();
-		buttons.add(new ClientButton(230, 90, Display.getWidth()/2f+450, Display.getHeight()/2f-100, "Play Again", () ->{			
-			game.state = GameState.playingHuman;
+		buttons.add(new ClientButton(230, 90, Display.getWidth()/2f+450, Display.getHeight()/2f-100, "Play Again", () ->{
+			if(ClientGame.training) {
+				game.state = GameState.training;
+			}else {
+				game.state = GameState.playingHuman;
+			}
 			game.reset();
 		}));
 		buttons.add(new ClientButton(230, 90, Display.getWidth()/2f+450, Display.getHeight()/2f+100, "Main Menu", () ->{
 			game.reset();
 			game.state = GameState.menu;
 			ClientMenuManager.menu = ClientMenuManager.MenuState.main;
-			
+
 		}));
 
 	}
 
 	public void operate() {	
-		
+
 		for(ClientButton b : buttons) {
 			b.operate();
 		}
-		
+
 	}
 
 }

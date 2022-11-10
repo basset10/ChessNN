@@ -35,7 +35,7 @@ public class ClientGame {
 	public static final int GAME_END_STATE_STALEMATE = 2;
 
 	//The minimum length of time, in seconds, the AI waits before making a move.
-	public static final float CPU_MINIMUM_WAIT_TIME = 0.5f;
+	public static final float CPU_MINIMUM_WAIT_TIME = 0f;
 
 	public enum GameState{
 		menu,
@@ -60,12 +60,15 @@ public class ClientGame {
 	public boolean boardInitialized = false;
 	//Count the number of moves in the game. Increments only when white moves.
 	public int moveCount = 0;
-	//Counts the number of consecutive turns with no capture or pawn moves.
+	//Counts the number of consecutive moves  with no capture or pawn moves.
 	//Increments only when Black moves.
-	//If this reaches 50, the game draws.
+	//If this reaches 100, the game draws.
 	public int drawCount = 0;
+	boolean incrementDrawCount = true;
 	//The length of time taken by the CPU to make a move.
 	public float moveTimer = 0f;
+	//Used for switching between training and playing mode.
+	public static boolean training;
 
 	private String id;		
 	private boolean debug = false;
@@ -104,6 +107,8 @@ public class ClientGame {
 		validMoves = new ArrayList<ClientMove>();
 		selectedPiecexPos = -1;
 		selectedPieceyPos = -1;
+		drawCount = 0;
+		incrementDrawCount = true;
 		//state = GameState.menu;
 		inCheck = false;
 		gameEndState = GAME_END_STATE_CONTINUE;
@@ -120,7 +125,7 @@ public class ClientGame {
 			ClientMenuManager.manageMenus(this);
 			if(boardInitialized) boardInitialized = false;
 		}
-		else if(state == GameState.playingHuman || state == GameState.postgame) {
+		else if(state == GameState.playingHuman || (state == GameState.postgame && training == false)) {
 			if(state == GameState.postgame){
 				ClientMenuManager.manageMenus(this);		
 			}
@@ -139,12 +144,10 @@ public class ClientGame {
 					player1.color = PlayerColor.WHITE;
 					player2.color = PlayerColor.BLACK;
 					player1Turn = true;
-					System.out.println("First game starting as " + player1.color.toString());
 				}else if(ClientMenuMain.color == ClientMenuMain.ColorSelection.BLACK) {
 					player1.color = PlayerColor.BLACK;
 					player2.color = PlayerColor.WHITE;
 					player1Turn = false;
-					System.out.println("First game starting as " + player1.color.toString());
 				}
 				board = new ClientBoard(player1);
 				board.initialize(player1);
@@ -160,6 +163,7 @@ public class ClientGame {
 
 			//Detect if a piece is clicked, highlight that piece's valid moves (if existing)
 			if(gameEndState == GAME_END_STATE_CONTINUE) {
+				incrementDrawCount = true;
 				if(inCheck) {
 					hvlFont(0).drawc("You are in check", Display.getWidth()/2+450, Display.getHeight()/2, 1.2f);
 				}else {
@@ -476,6 +480,9 @@ public class ClientGame {
 						if(move == null) {
 							System.out.println("Something has gone wrong.");
 						}
+						if(move.piece.type == PieceType.PAWN) {
+							drawCount = 0;
+						}
 
 						//If the move is an en passant capture, remove the appropriate pawn.
 						if(move.piece.type == PieceType.PAWN) {
@@ -501,6 +508,7 @@ public class ClientGame {
 								if(board.activePieces.get(i).xPos == move.move.x && board.activePieces.get(i).yPos == move.move.y) {
 									board.claimedPieces.add(board.activePieces.get(i));
 									board.activePieces.remove(i);
+									drawCount = 0;
 									break;
 								}
 							}														
@@ -577,9 +585,9 @@ public class ClientGame {
 			}else {
 				if(gameEndState == GAME_END_STATE_CHECKMATE) {
 					if(finalMove == player1.color) {
-						hvlFont(0).drawc("Victory! Checkmate by " + finalMove.toString().toLowerCase() + " in " + moveCount + " moves.", Display.getWidth()/2, Display.getHeight()-20, 1.2f);	
+						hvlFont(0).drawc("Checkmate by " + finalMove.toString().toLowerCase() + " in " + moveCount + " moves.", Display.getWidth()/2, Display.getHeight()-20, 1.2f);	
 					}else {
-						hvlFont(0).drawc("Defeat! Checkmate by " + finalMove.toString().toLowerCase() + " in " + moveCount + " moves.", Display.getWidth()/2, Display.getHeight()-20, 1.2f);	
+						hvlFont(0).drawc("Checkmate by " + finalMove.toString().toLowerCase() + " in " + moveCount + " moves.", Display.getWidth()/2, Display.getHeight()-20, 1.2f);	
 
 					}
 				}else {
@@ -589,7 +597,15 @@ public class ClientGame {
 
 
 
-		}else if(state == GameState.training) {
+		}else if(state == GameState.training || (state == GameState.postgame && training == true)) {
+			if(state == GameState.postgame){
+				ClientMenuManager.manageMenus(this);
+				if(gameEndState == GAME_END_STATE_STALEMATE) {
+					hvlFont(0).drawc("Stalemate in " + moveCount + " moves.", Display.getWidth()/2, Display.getHeight()-20, 1.2f);	
+				}else if( gameEndState == GAME_END_STATE_CHECKMATE) {
+					hvlFont(0).drawc("Checkmate by " + finalMove.toString() + " in " + moveCount + " moves.", Display.getWidth()/2, Display.getHeight()-20, 1.2f);	
+				}
+			}
 			if(!boardInitialized) {
 
 				player1.color = PlayerColor.WHITE;
@@ -608,6 +624,7 @@ public class ClientGame {
 			}
 
 			if(gameEndState == GAME_END_STATE_CONTINUE) {
+				incrementDrawCount = true;
 				if(ClientPieceLogic.getCheckState(board, player1)) {
 					hvlFont(0).drawc("Player 1 is in check", Display.getWidth()/2+450, Display.getHeight()/2, 1.2f);
 				}else {
@@ -636,6 +653,10 @@ public class ClientGame {
 						if(move == null) {
 							System.out.println("Something has gone wrong.");
 						}
+						if(move.piece.type == PieceType.PAWN) {
+							drawCount = 0;
+							incrementDrawCount = false;
+						}
 
 						//If the move is an en passant capture, remove the appropriate pawn.
 						if(move.piece.type == PieceType.PAWN) {
@@ -661,6 +682,8 @@ public class ClientGame {
 								if(board.activePieces.get(i).xPos == move.move.x && board.activePieces.get(i).yPos == move.move.y) {
 									board.claimedPieces.add(board.activePieces.get(i));
 									board.activePieces.remove(i);
+									drawCount = 0;
+									incrementDrawCount = false;
 									break;
 								}
 							}														
@@ -731,6 +754,15 @@ public class ClientGame {
 								ClientMenuManager.menu = ClientMenuManager.MenuState.postgame;
 							}
 						}
+						if(incrementDrawCount) {
+							drawCount++;
+						}
+						if(drawCount >= 100) {
+							System.out.println("STALEMATE!");
+							gameEndState = GAME_END_STATE_STALEMATE;
+							state = GameState.postgame;
+							ClientMenuManager.menu = ClientMenuManager.MenuState.postgame;
+						}
 						player1Turn = false;
 					}
 				}else {
@@ -756,7 +788,10 @@ public class ClientGame {
 						if(move == null) {
 							System.out.println("Something has gone wrong.");
 						}
-
+						if(move.piece.type == PieceType.PAWN) {
+							drawCount = 0;
+							incrementDrawCount = false;
+						}
 						//If the move is an en passant capture, remove the appropriate pawn.
 						if(move.piece.type == PieceType.PAWN) {
 							if(move.piece.xPos != move.move.x && board.isSpaceFree(move.move.x, move.move.y)) {
@@ -781,6 +816,8 @@ public class ClientGame {
 								if(board.activePieces.get(i).xPos == move.move.x && board.activePieces.get(i).yPos == move.move.y) {
 									board.claimedPieces.add(board.activePieces.get(i));
 									board.activePieces.remove(i);
+									drawCount = 0;
+									incrementDrawCount = false;
 									break;
 								}
 							}														
@@ -851,12 +888,19 @@ public class ClientGame {
 								ClientMenuManager.menu = ClientMenuManager.MenuState.postgame;
 							}
 						}
+						if(incrementDrawCount) {
+							drawCount++;
+						}
+						if(drawCount >= 100) {
+							System.out.println("STALEMATE!");
+							gameEndState = GAME_END_STATE_STALEMATE;
+							state = GameState.postgame;
+							ClientMenuManager.menu = ClientMenuManager.MenuState.postgame;
+						}
 						player1Turn = true;
 					}
 				}
 			}
-
 		}
 	}
-
 }
