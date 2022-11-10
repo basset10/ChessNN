@@ -22,11 +22,11 @@ public class ClientMenuPostgame {
 
 	public ClientMenuPostgame(ClientGame game) {
 		buttons = new ArrayList<ClientButton>();
-		buttons.add(new ClientButton(200, 120, Display.getWidth()/2f+450, Display.getHeight()/2f-100, "Play Again", () ->{			
+		buttons.add(new ClientButton(230, 90, Display.getWidth()/2f+450, Display.getHeight()/2f-100, "Play Again", () ->{			
 			game.state = GameState.playingHuman;
 			game.reset();
 		}));
-		buttons.add(new ClientButton(200, 120, Display.getWidth()/2f+450, Display.getHeight()/2f+100, "Main Menu", () ->{			
+		buttons.add(new ClientButton(230, 90, Display.getWidth()/2f+450, Display.getHeight()/2f+100, "Main Menu", () ->{			
 			game.state = GameState.menu;
 			ClientMenuManager.menu = ClientMenuManager.MenuState.main;
 			game.reset();
