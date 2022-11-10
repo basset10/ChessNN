@@ -44,10 +44,13 @@ public class ClientPlayer {
 		}
 
 		Random rng = new Random();
-		
-		//Crashes if the previous player ended the game with a promotion.
-		//Check if possible pieces.size is greater than 0 before calling NextInt?
-		int pieceIndex = rng.nextInt(possiblePieces.size());
+
+		int pieceIndex = 0;
+		if(possiblePieces.size() > 0) {
+			pieceIndex = rng.nextInt(possiblePieces.size());
+		}else {
+			return null;
+		}
 
 
 		boolean legalPieceFlag = true;

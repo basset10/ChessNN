@@ -349,6 +349,27 @@ public class ClientGame {
 								&& Util.getCursorY() <= Display.getHeight()/2+55+48 && Util.getCursorY() >= Display.getHeight()/2+55-48
 								&& Util.leftMouseClick()) {
 							board.getPieceAt(promotionX, promotionY).type = PieceType.QUEEN;
+							int possibleMoves = 0;
+							for(ClientPiece a : board.activePieces) {
+								if((a.color == PieceColor.BLACK && player2.color == PlayerColor.BLACK) || 
+										(a.color == PieceColor.WHITE && player2.color == PlayerColor.WHITE)) {
+									possibleMoves = possibleMoves + a.getAllValidMoves(board, player2).size();
+								}
+							}
+							if(possibleMoves == 0){
+								if(ClientPieceLogic.getCheckState(board, player2)) {
+									System.out.println("CHECKMATE BY HUMAN!");
+									finalMove = player1.color;
+									gameEndState = GAME_END_STATE_CHECKMATE;
+									state = GameState.postgame;
+									ClientMenuManager.menu = ClientMenuManager.MenuState.postgame;
+								}else {
+									System.out.println("STALEMATE!");
+									gameEndState = GAME_END_STATE_STALEMATE;
+									state = GameState.postgame;
+									ClientMenuManager.menu = ClientMenuManager.MenuState.postgame;
+								}
+							}
 							promotionUI = false;
 							playersTurn = false;
 						}
@@ -356,6 +377,27 @@ public class ClientGame {
 								&& Util.getCursorY() <= Display.getHeight()/2-55+48 && Util.getCursorY() >= Display.getHeight()/2-55-48
 								&& Util.leftMouseClick()) {
 							board.getPieceAt(promotionX, promotionY).type = PieceType.KNIGHT;
+							int possibleMoves = 0;
+							for(ClientPiece a : board.activePieces) {
+								if((a.color == PieceColor.BLACK && player2.color == PlayerColor.BLACK) || 
+										(a.color == PieceColor.WHITE && player2.color == PlayerColor.WHITE)) {
+									possibleMoves = possibleMoves + a.getAllValidMoves(board, player2).size();
+								}
+							}
+							if(possibleMoves == 0){
+								if(ClientPieceLogic.getCheckState(board, player2)) {
+									System.out.println("CHECKMATE BY HUMAN!");
+									finalMove = player1.color;
+									gameEndState = GAME_END_STATE_CHECKMATE;
+									state = GameState.postgame;
+									ClientMenuManager.menu = ClientMenuManager.MenuState.postgame;
+								}else {
+									System.out.println("STALEMATE!");
+									gameEndState = GAME_END_STATE_STALEMATE;
+									state = GameState.postgame;
+									ClientMenuManager.menu = ClientMenuManager.MenuState.postgame;
+								}
+							}
 							promotionUI = false;
 							playersTurn = false;
 						}
@@ -363,6 +405,27 @@ public class ClientGame {
 								&& Util.getCursorY() <= Display.getHeight()/2+55+48 && Util.getCursorY() >= Display.getHeight()/2+55-48
 								&& Util.leftMouseClick()) {
 							board.getPieceAt(promotionX, promotionY).type = PieceType.ROOK;
+							int possibleMoves = 0;
+							for(ClientPiece a : board.activePieces) {
+								if((a.color == PieceColor.BLACK && player2.color == PlayerColor.BLACK) || 
+										(a.color == PieceColor.WHITE && player2.color == PlayerColor.WHITE)) {
+									possibleMoves = possibleMoves + a.getAllValidMoves(board, player2).size();
+								}
+							}
+							if(possibleMoves == 0){
+								if(ClientPieceLogic.getCheckState(board, player2)) {
+									System.out.println("CHECKMATE BY HUMAN!");
+									finalMove = player1.color;
+									gameEndState = GAME_END_STATE_CHECKMATE;
+									state = GameState.postgame;
+									ClientMenuManager.menu = ClientMenuManager.MenuState.postgame;
+								}else {
+									System.out.println("STALEMATE!");
+									gameEndState = GAME_END_STATE_STALEMATE;
+									state = GameState.postgame;
+									ClientMenuManager.menu = ClientMenuManager.MenuState.postgame;
+								}
+							}
 							promotionUI = false;
 							playersTurn = false;
 						}
@@ -370,6 +433,27 @@ public class ClientGame {
 								&& Util.getCursorY() <= Display.getHeight()/2-55+48 && Util.getCursorY() >= Display.getHeight()/2-55-48
 								&& Util.leftMouseClick()) {
 							board.getPieceAt(promotionX, promotionY).type = PieceType.BISHOP;
+							int possibleMoves = 0;
+							for(ClientPiece a : board.activePieces) {
+								if((a.color == PieceColor.BLACK && player2.color == PlayerColor.BLACK) || 
+										(a.color == PieceColor.WHITE && player2.color == PlayerColor.WHITE)) {
+									possibleMoves = possibleMoves + a.getAllValidMoves(board, player2).size();
+								}
+							}
+							if(possibleMoves == 0){
+								if(ClientPieceLogic.getCheckState(board, player2)) {
+									System.out.println("CHECKMATE BY HUMAN!");
+									finalMove = player1.color;
+									gameEndState = GAME_END_STATE_CHECKMATE;
+									state = GameState.postgame;
+									ClientMenuManager.menu = ClientMenuManager.MenuState.postgame;
+								}else {
+									System.out.println("STALEMATE!");
+									gameEndState = GAME_END_STATE_STALEMATE;
+									state = GameState.postgame;
+									ClientMenuManager.menu = ClientMenuManager.MenuState.postgame;
+								}
+							}
 							promotionUI = false;
 							playersTurn = false;
 						}
@@ -390,6 +474,9 @@ public class ClientGame {
 
 					//Generate the move...
 					AiMove move = player2.generateRandomMove(board, player2);
+					if(move == null) {
+						System.out.println("Something has gone wrong.");
+					}
 
 					//If the move is an en passant capture, remove the appropriate pawn.
 					if(move.piece.type == PieceType.PAWN) {
