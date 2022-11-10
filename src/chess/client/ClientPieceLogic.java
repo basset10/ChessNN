@@ -341,8 +341,10 @@ public class ClientPieceLogic{
 						if(boardArg.getPieceAt(pieceArg.xPos-1, pieceArg.yPos).enPassantVulnerable) {
 							if(checkTest) {
 								if(legalMoveCheck(pieceArg.xPos-1, pieceArg.yPos-1, pieceArg, boardArg, player))
+									//System.out.println("EN PASSANT MOVE DETECTED");
 									moves.add(new ClientMove(pieceArg.xPos-1, pieceArg.yPos-1, false, true));
 							}else {
+								//System.out.println("EN PASSANT MOVE DETECTED");
 								moves.add(new ClientMove(pieceArg.xPos-1, pieceArg.yPos-1, false, true));
 							}
 						}
@@ -354,8 +356,10 @@ public class ClientPieceLogic{
 						if(boardArg.getPieceAt(pieceArg.xPos+1, pieceArg.yPos).enPassantVulnerable) {
 							if(checkTest) {
 								if(legalMoveCheck(pieceArg.xPos+1, pieceArg.yPos-1, pieceArg, boardArg, player))
+									//System.out.println("EN PASSANT MOVE DETECTED");
 									moves.add(new ClientMove(pieceArg.xPos+1, pieceArg.yPos-1, false, true));
 							}else {
+								//System.out.println("EN PASSANT MOVE DETECTED");
 								moves.add(new ClientMove(pieceArg.xPos+1, pieceArg.yPos-1, false, true));
 							}
 						}
@@ -409,8 +413,10 @@ public class ClientPieceLogic{
 						if(boardArg.getPieceAt(pieceArg.xPos-1, pieceArg.yPos).enPassantVulnerable) {
 							if(checkTest) {
 								if(legalMoveCheck(pieceArg.xPos-1, pieceArg.yPos+1, pieceArg, boardArg, player))
+									//System.out.println("EN PASSANT MOVE DETECTED");
 									moves.add(new ClientMove(pieceArg.xPos-1, pieceArg.yPos+1, false, true));
 							}else {
+								//System.out.println("EN PASSANT MOVE DETECTED");
 								moves.add(new ClientMove(pieceArg.xPos-1, pieceArg.yPos+1, false, true));
 							}
 						}
@@ -422,8 +428,10 @@ public class ClientPieceLogic{
 						if(boardArg.getPieceAt(pieceArg.xPos+1, pieceArg.yPos).enPassantVulnerable) {
 							if(checkTest) {
 								if(legalMoveCheck(pieceArg.xPos+1, pieceArg.yPos+1, pieceArg, boardArg, player))
+									//System.out.println("EN PASSANT MOVE DETECTED");
 									moves.add(new ClientMove(pieceArg.xPos+1, pieceArg.yPos+1, false, true));
 							}else {
+								//System.out.println("EN PASSANT MOVE DETECTED");
 								moves.add(new ClientMove(pieceArg.xPos+1, pieceArg.yPos+1, false, true));
 							}
 						}

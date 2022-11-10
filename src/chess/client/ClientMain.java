@@ -1,7 +1,5 @@
 package chess.client;
 
-import com.osreboot.hvol2.direct.HvlDirect;
-import com.osreboot.ridhvl2.template.HvlChronology;
 import com.osreboot.ridhvl2.template.HvlDisplayWindowed;
 import com.osreboot.ridhvl2.template.HvlTemplateI;
 
@@ -18,7 +16,6 @@ public class ClientMain extends HvlTemplateI{
 	//Game can be Player v. AI or AI v. AI
 
 	public static void main(String args[]) {
-		HvlChronology.registerChronology(HvlDirect.class);
 		new ClientMain();
 	}
 

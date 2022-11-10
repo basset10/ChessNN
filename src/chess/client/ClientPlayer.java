@@ -26,7 +26,7 @@ public class ClientPlayer {
 
 	//Used for AI players
 	//Begin by selecting a random valid move from a list of all valid moves for this player.
-	public AiMove generateMove(ClientBoard board, ClientPlayer player) {
+	public AiMove generateRandomMove(ClientBoard board, ClientPlayer player) {
 
 
 		ArrayList<ClientPiece> possiblePieces = new ArrayList<ClientPiece>();
@@ -35,7 +35,11 @@ public class ClientPlayer {
 		for(ClientPiece p : board.activePieces) {
 			if((p.color == PieceColor.BLACK && player.color == PlayerColor.BLACK) || 
 					(p.color == PieceColor.WHITE && player.color == PlayerColor.WHITE)) {
-				possiblePieces.add(p);
+				if(p.getAllValidMoves(board, player).size() > 0) {
+					possiblePieces.add(p);
+					System.out.println("piece " + p.type.toString() + " on space (" + p.xPos + ", " + p.yPos + ") has " + p.getAllValidMoves(board, player).size() + " legal moves.");
+				}
+
 			}
 		}
 
