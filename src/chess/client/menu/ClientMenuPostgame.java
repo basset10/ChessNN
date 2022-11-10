@@ -26,10 +26,10 @@ public class ClientMenuPostgame {
 			game.state = GameState.playingHuman;
 			game.reset();
 		}));
-		buttons.add(new ClientButton(230, 90, Display.getWidth()/2f+450, Display.getHeight()/2f+100, "Main Menu", () ->{			
+		buttons.add(new ClientButton(230, 90, Display.getWidth()/2f+450, Display.getHeight()/2f+100, "Main Menu", () ->{
+			game.reset();
 			game.state = GameState.menu;
 			ClientMenuManager.menu = ClientMenuManager.MenuState.main;
-			game.reset();
 			
 		}));
 

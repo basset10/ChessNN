@@ -31,15 +31,18 @@ public class ClientMenuMain {
 		}));
 		buttons.add(new ClientButton(80, 80, Display.getWidth()/2f + 220, Display.getHeight()/2f+100, "", () ->{
 			color = ColorSelection.WHITE;
+			System.out.println("Playing as " + color.toString());
 		}));
 		buttons.add(new ClientButton(80, 80, Display.getWidth()/2f + 320, Display.getHeight()/2f+100, "", () ->{
 			color = ColorSelection.BLACK;
+			System.out.println("Playing as " + color.toString());
 		}));
 		buttons.add(new ClientButton(80, 80, Display.getWidth()/2f + 420, Display.getHeight()/2f+100, "", () ->{
 			color = ColorSelection.RANDOM;
+			System.out.println("Playing as " + color.toString());
 		}));
 		buttons.add(new ClientButton(300, 100, Display.getWidth()/2f, Display.getHeight()/2f+230, "Train AI", () ->{
-			//game.state = GameState.playing;
+			game.state = GameState.training;
 		}));
 	}
 

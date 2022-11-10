@@ -27,12 +27,15 @@ import chess.common.Util;
 public class ClientGame {
 
 	//Always draw the board from Player 1's perspective.
-	//If a human player is present, they will always be player 1.
+	//If a human player is present, they will always be Player 1.
 	//Create two separate game cases - AIvAI and PvAI
 
 	public static final int GAME_END_STATE_CONTINUE = 0;
 	public static final int GAME_END_STATE_CHECKMATE = 1;
 	public static final int GAME_END_STATE_STALEMATE = 2;
+
+	//The minimum length of time, in seconds, the AI waits before making a move.
+	public static final float CPU_MINIMUM_WAIT_TIME = 0.5f;
 
 	public enum GameState{
 		menu,
@@ -41,21 +44,28 @@ public class ClientGame {
 		postgame,
 	}
 
-	public enum GameMode{
-		humanVAi,
-		AivAi;
-	}
-
 	public GameState state = GameState.menu;
 	public int gameEndState = GAME_END_STATE_CONTINUE;
+
+	//Used to track when the human player is in check.
 	public boolean inCheck = false;
-	public boolean playersTurn = false;
+	//Used to track when it is Player 1's turn to move.
+	public boolean player1Turn = false;
+	//Used to track which player made the last move.
 	public PlayerColor finalMove;
 	public ClientBoard board;
 	public ClientPlayer player1;
 	public ClientPlayer player2;
+	//Used to initialize and reset the game board.
 	public boolean boardInitialized = false;
+	//Count the number of moves in the game. Increments only when white moves.
 	public int moveCount = 0;
+	//Counts the number of consecutive turns with no capture or pawn moves.
+	//Increments only when Black moves.
+	//If this reaches 50, the game draws.
+	public int drawCount = 0;
+	//The length of time taken by the CPU to make a move.
+	public float moveTimer = 0f;
 
 	private String id;		
 	private boolean debug = false;
@@ -90,35 +100,17 @@ public class ClientGame {
 	}
 
 	public void reset() {
+		//System.out.println("Reset!");
 		validMoves = new ArrayList<ClientMove>();
 		selectedPiecexPos = -1;
 		selectedPieceyPos = -1;
-		boardInitialized = false;
 		//state = GameState.menu;
 		inCheck = false;
 		gameEndState = GAME_END_STATE_CONTINUE;
 		finalMove = null;
 		moveCount = 0;
 		promotionUI = false;
-		if(ClientMenuMain.color == ClientMenuMain.ColorSelection.RANDOM) {
-			if(HvlMath.randomInt(0, 1) == 0) {
-				player1.color = PlayerColor.WHITE;
-				player2.color = PlayerColor.BLACK;
-				playersTurn = true;
-			}else {
-				player1.color = PlayerColor.BLACK;
-				player2.color = PlayerColor.WHITE;
-				playersTurn = false;
-			}
-		}else if(ClientMenuMain.color == ClientMenuMain.ColorSelection.WHITE) {
-			player1.color = PlayerColor.WHITE;
-			player2.color = PlayerColor.BLACK;
-			playersTurn = true;			
-		}else if(ClientMenuMain.color == ClientMenuMain.ColorSelection.BLACK) {
-			player1.color = PlayerColor.BLACK;
-			player2.color = PlayerColor.WHITE;
-			playersTurn = false;			
-		}
+		boardInitialized = false;
 
 	}
 
@@ -126,6 +118,7 @@ public class ClientGame {
 
 		if(state == GameState.menu) {
 			ClientMenuManager.manageMenus(this);
+			if(boardInitialized) boardInitialized = false;
 		}
 		else if(state == GameState.playingHuman || state == GameState.postgame) {
 			if(state == GameState.postgame){
@@ -136,20 +129,22 @@ public class ClientGame {
 					if(HvlMath.randomInt(0, 1) == 0) {
 						player1.color = PlayerColor.WHITE;
 						player2.color = PlayerColor.BLACK;
-						playersTurn = true;
+						player1Turn = true;
 					}else {
 						player1.color = PlayerColor.BLACK;
 						player2.color = PlayerColor.WHITE;
-						playersTurn = false;
+						player1Turn = false;
 					}
 				}else if(ClientMenuMain.color == ClientMenuMain.ColorSelection.WHITE) {
 					player1.color = PlayerColor.WHITE;
 					player2.color = PlayerColor.BLACK;
-					playersTurn = true;			
+					player1Turn = true;
+					System.out.println("First game starting as " + player1.color.toString());
 				}else if(ClientMenuMain.color == ClientMenuMain.ColorSelection.BLACK) {
 					player1.color = PlayerColor.BLACK;
 					player2.color = PlayerColor.WHITE;
-					playersTurn = false;			
+					player1Turn = false;
+					System.out.println("First game starting as " + player1.color.toString());
 				}
 				board = new ClientBoard(player1);
 				board.initialize(player1);
@@ -173,7 +168,7 @@ public class ClientGame {
 					}
 				}
 				//Human player controls
-				if(playersTurn) {
+				if(player1Turn) {
 					hvlFont(0).drawc("It is your turn", Display.getWidth()/2, Display.getHeight()-20, 1.2f);
 
 					//Unmark any pieces as en passant vulnerable at the start of the turn.
@@ -324,7 +319,7 @@ public class ClientGame {
 										if(!p.moved) p.moved = true;
 										validMoves.clear();
 										escape = true;
-										if(!promotionUI) playersTurn = false;
+										if(!promotionUI) player1Turn = false;
 										if(player1.color == PlayerColor.WHITE)
 											moveCount++;
 									}					
@@ -371,7 +366,7 @@ public class ClientGame {
 								}
 							}
 							promotionUI = false;
-							playersTurn = false;
+							player1Turn = false;
 						}
 						if(Util.getCursorX() <= Display.getWidth()/2 + 425+55+48 && Util.getCursorX() >= Display.getWidth()/2 + 425+55-48
 								&& Util.getCursorY() <= Display.getHeight()/2-55+48 && Util.getCursorY() >= Display.getHeight()/2-55-48
@@ -399,7 +394,7 @@ public class ClientGame {
 								}
 							}
 							promotionUI = false;
-							playersTurn = false;
+							player1Turn = false;
 						}
 						if(Util.getCursorX() <= Display.getWidth()/2 + 425-55+48 && Util.getCursorX() >= Display.getWidth()/2 + 425-55-48
 								&& Util.getCursorY() <= Display.getHeight()/2+55+48 && Util.getCursorY() >= Display.getHeight()/2+55-48
@@ -427,7 +422,7 @@ public class ClientGame {
 								}
 							}
 							promotionUI = false;
-							playersTurn = false;
+							player1Turn = false;
 						}
 						if(Util.getCursorX() <= Display.getWidth()/2 + 425-55+48 && Util.getCursorX() >= Display.getWidth()/2 + 425-55-48
 								&& Util.getCursorY() <= Display.getHeight()/2-55+48 && Util.getCursorY() >= Display.getHeight()/2-55-48
@@ -455,124 +450,129 @@ public class ClientGame {
 								}
 							}
 							promotionUI = false;
-							playersTurn = false;
+							player1Turn = false;
 						}
 					}
 				}else {
-					hvlFont(0).drawc("Waiting for opponent", Display.getWidth()/2, Display.getHeight()-20, 1.2f);
-					//Unmark any pieces as en passant vulnerable at the start of the turn.
-					for(ClientPiece p : board.activePieces) {
-						if((p.color == PieceColor.BLACK && player2.color == PlayerColor.BLACK) ||
-								(p.color == PieceColor.WHITE && player2.color == PlayerColor.WHITE)) {
-							if(p.type == PieceType.PAWN) {
-								if(p.enPassantVulnerable) {
-									p.enPassantVulnerable = false;
+					moveTimer += delta;
+					System.out.println(moveTimer);
+					if(moveTimer >= CPU_MINIMUM_WAIT_TIME) {
+						moveTimer = 0f;
+						hvlFont(0).drawc("Waiting for opponent", Display.getWidth()/2, Display.getHeight()-20, 1.2f);
+						//Unmark any pieces as en passant vulnerable at the start of the turn.
+						for(ClientPiece p : board.activePieces) {
+							if((p.color == PieceColor.BLACK && player2.color == PlayerColor.BLACK) ||
+									(p.color == PieceColor.WHITE && player2.color == PlayerColor.WHITE)) {
+								if(p.type == PieceType.PAWN) {
+									if(p.enPassantVulnerable) {
+										p.enPassantVulnerable = false;
+									}
 								}
 							}
 						}
-					}
 
-					//Generate the move...
-					AiMove move = player2.generateRandomMove(board, player2);
-					if(move == null) {
-						System.out.println("Something has gone wrong.");
-					}
+						//Generate the move...
+						AiMove move = player2.generateRandomMove(board, player2);
+						if(move == null) {
+							System.out.println("Something has gone wrong.");
+						}
 
-					//If the move is an en passant capture, remove the appropriate pawn.
-					if(move.piece.type == PieceType.PAWN) {
-						if(move.piece.xPos != move.move.x && board.isSpaceFree(move.move.x, move.move.y)) {
-							if(move.piece.color == PieceColor.BLACK) {
-								if(board.getPieceAt(move.move.x, move.move.y-1).enPassantVulnerable) {
-									board.claimedPieces.add(board.getPieceAt(move.move.x, move.move.y-1));
-									board.activePieces.remove(board.getPieceAt(move.move.x, move.move.y-1));
+						//If the move is an en passant capture, remove the appropriate pawn.
+						if(move.piece.type == PieceType.PAWN) {
+							if(move.piece.xPos != move.move.x && board.isSpaceFree(move.move.x, move.move.y)) {
+								if(move.piece.color == PieceColor.BLACK) {
+									if(board.getPieceAt(move.move.x, move.move.y-1).enPassantVulnerable) {
+										board.claimedPieces.add(board.getPieceAt(move.move.x, move.move.y-1));
+										board.activePieces.remove(board.getPieceAt(move.move.x, move.move.y-1));
+									}
+								}else if(move.piece.color == PieceColor.WHITE) {
+									if(board.getPieceAt(move.move.x, move.move.y+1).enPassantVulnerable) {
+										board.claimedPieces.add(board.getPieceAt(move.move.x, move.move.y+1));
+										board.activePieces.remove(board.getPieceAt(move.move.x, move.move.y+1));
+									}
 								}
-							}else if(move.piece.color == PieceColor.WHITE) {
-								if(board.getPieceAt(move.move.x, move.move.y+1).enPassantVulnerable) {
-									board.claimedPieces.add(board.getPieceAt(move.move.x, move.move.y+1));
-									board.activePieces.remove(board.getPieceAt(move.move.x, move.move.y+1));
+
+							}
+						}
+
+						//Claim any piece existing on the move square
+						if(!board.isSpaceFree(move.move.x, move.move.y)) {
+							for(int i = 0; i < board.activePieces.size(); i++) {
+								if(board.activePieces.get(i).xPos == move.move.x && board.activePieces.get(i).yPos == move.move.y) {
+									board.claimedPieces.add(board.activePieces.get(i));
+									board.activePieces.remove(i);
+									break;
+								}
+							}														
+						}
+						//If the intended move moves a pawn two spaces, mark that pawn as en passant vulnerable.
+						if(move.piece.type == PieceType.PAWN) {
+							if((move.piece.yPos == 1 && move.move.y == 3) || (move.piece.yPos == 6 && move.move.y == 4)) {
+								move.piece.enPassantVulnerable = true;
+							}
+						}
+						move.piece.translateToNewLocation(move.move.x, move.move.y, player2, this);	
+
+
+
+						if(player2.color == PlayerColor.BLACK) {																						
+							//If the move is a promotion, upgrade the pawn.
+							//All AI promotions are queens
+							if(move.piece.yPos == 7 && move.piece.type==PieceType.PAWN) {							
+								board.getPieceAt(move.piece.xPos, move.piece.yPos).type = PieceType.QUEEN;							
+							}
+
+							//If the move is a castle, detect and move the appropriate rook
+							if(move.move.castle) {
+								if(move.move.x == 6 && move.move.y == 0) {
+									board.getPieceAt(7, 0).xPos = 5;
+								}else if(move.move.x == 2 && move.move.y == 0) {
+									board.getPieceAt(0, 0).xPos = 3;
 								}
 							}
-
-						}
-					}
-
-					//Claim any piece existing on the move square
-					if(!board.isSpaceFree(move.move.x, move.move.y)) {
-						for(int i = 0; i < board.activePieces.size(); i++) {
-							if(board.activePieces.get(i).xPos == move.move.x && board.activePieces.get(i).yPos == move.move.y) {
-								board.claimedPieces.add(board.activePieces.get(i));
-								board.activePieces.remove(i);
-								break;
+						}else {
+							if(move.piece.yPos == 0 && move.piece.type==PieceType.PAWN) {
+								board.getPieceAt(move.piece.xPos, move.piece.yPos).type = PieceType.QUEEN;
 							}
-						}														
-					}
-					//If the intended move moves a pawn two spaces, mark that pawn as en passant vulnerable.
-					if(move.piece.type == PieceType.PAWN) {
-						if((move.piece.yPos == 1 && move.move.y == 3) || (move.piece.yPos == 6 && move.move.y == 4)) {
-							move.piece.enPassantVulnerable = true;
-						}
-					}
-					move.piece.translateToNewLocation(move.move.x, move.move.y, player2, this);	
 
+							//If the move is a castle, detect and move the appropriate rook
+							if(move.move.castle) {
+								if(move.move.x == 6 && move.move.y == 7) {
+									board.getPieceAt(7, 7).xPos = 5;
+								}else if(move.move.x == 2 && move.move.y == 7) {
+									board.getPieceAt(0, 7).xPos = 3;
+								}
+							}
+						}										
 
-
-					if(player2.color == PlayerColor.BLACK) {																						
-						//If the move is a promotion, upgrade the pawn.
-						//All AI promotions are queens
-						if(move.piece.yPos == 7 && move.piece.type==PieceType.PAWN) {							
-							board.getPieceAt(move.piece.xPos, move.piece.yPos).type = PieceType.QUEEN;							
-						}
-
-						//If the move is a castle, detect and move the appropriate rook
-						if(move.move.castle) {
-							if(move.move.x == 6 && move.move.y == 0) {
-								board.getPieceAt(7, 0).xPos = 5;
-							}else if(move.move.x == 2 && move.move.y == 0) {
-								board.getPieceAt(0, 0).xPos = 3;
+						if(player2.color == PlayerColor.WHITE)
+							moveCount++;
+						int possibleMoves = 0;
+						for(ClientPiece p : board.activePieces) {
+							if((p.color == PieceColor.BLACK && player1.color == PlayerColor.BLACK) || 
+									(p.color == PieceColor.WHITE && player1.color == PlayerColor.WHITE)) {
+								possibleMoves = possibleMoves + p.getAllValidMoves(board, player1).size();
 							}
 						}
-					}else {
-						if(move.piece.yPos == 0 && move.piece.type==PieceType.PAWN) {
-							board.getPieceAt(move.piece.xPos, move.piece.yPos).type = PieceType.QUEEN;
-						}
-
-						//If the move is a castle, detect and move the appropriate rook
-						if(move.move.castle) {
-							if(move.move.x == 6 && move.move.y == 7) {
-								board.getPieceAt(7, 7).xPos = 5;
-							}else if(move.move.x == 2 && move.move.y == 7) {
-								board.getPieceAt(0, 7).xPos = 3;
+						if(ClientPieceLogic.getCheckState(board, player1)){
+							inCheck = true;
+							if(possibleMoves == 0){
+								System.out.println("CHECKMATE BY AI!");
+								finalMove = player2.color;
+								gameEndState = GAME_END_STATE_CHECKMATE;
+								state = GameState.postgame;
+								ClientMenuManager.menu = ClientMenuManager.MenuState.postgame;
+							}
+						}else {
+							if(possibleMoves == 0) {
+								System.out.println("STALEMATE!");
+								gameEndState = GAME_END_STATE_STALEMATE;
+								state = GameState.postgame;
+								ClientMenuManager.menu = ClientMenuManager.MenuState.postgame;
 							}
 						}
-					}										
-
-					if(player2.color == PlayerColor.WHITE)
-						moveCount++;
-					int possibleMoves = 0;
-					for(ClientPiece p : board.activePieces) {
-						if((p.color == PieceColor.BLACK && player1.color == PlayerColor.BLACK) || 
-								(p.color == PieceColor.WHITE && player1.color == PlayerColor.WHITE)) {
-							possibleMoves = possibleMoves + p.getAllValidMoves(board, player1).size();
-						}
+						player1Turn = true;
 					}
-					if(ClientPieceLogic.getCheckState(board, player1)){
-						inCheck = true;
-						if(possibleMoves == 0){
-							System.out.println("CHECKMATE BY AI!");
-							finalMove = player2.color;
-							gameEndState = GAME_END_STATE_CHECKMATE;
-							state = GameState.postgame;
-							ClientMenuManager.menu = ClientMenuManager.MenuState.postgame;
-						}
-					}else {
-						if(possibleMoves == 0) {
-							System.out.println("STALEMATE!");
-							gameEndState = GAME_END_STATE_STALEMATE;
-							state = GameState.postgame;
-							ClientMenuManager.menu = ClientMenuManager.MenuState.postgame;
-						}
-					}
-					playersTurn = true;
 				}
 			}else {
 				if(gameEndState == GAME_END_STATE_CHECKMATE) {
@@ -587,6 +587,274 @@ public class ClientGame {
 				}
 			}
 
+
+
+		}else if(state == GameState.training) {
+			if(!boardInitialized) {
+
+				player1.color = PlayerColor.WHITE;
+				player2.color = PlayerColor.BLACK;
+				player1Turn = true;
+
+				board = new ClientBoard(player1);
+				board.initialize(player1);
+				boardInitialized = true;
+			}
+			board.update(delta, player1);
+			for(ClientPiece p : board.activePieces) {
+				if(p.inMotion) {							
+					p.drawTranslation(player1, delta, this);							
+				}
+			}
+
+			if(gameEndState == GAME_END_STATE_CONTINUE) {
+				if(ClientPieceLogic.getCheckState(board, player1)) {
+					hvlFont(0).drawc("Player 1 is in check", Display.getWidth()/2+450, Display.getHeight()/2, 1.2f);
+				}else {
+					if(ClientPieceLogic.getCheckState(board, player2)) {
+						hvlFont(0).drawc("Player 2 is in check", Display.getWidth()/2+450, Display.getHeight()/2, 1.2f);
+					}			
+				}
+				if(player1Turn) {
+					moveTimer += delta;
+					if(moveTimer >= CPU_MINIMUM_WAIT_TIME) {
+						moveTimer = 0f;
+						//Unmark any pieces as en passant vulnerable at the start of the turn.
+						for(ClientPiece p : board.activePieces) {
+							if((p.color == PieceColor.BLACK && player1.color == PlayerColor.BLACK) ||
+									(p.color == PieceColor.WHITE && player1.color == PlayerColor.WHITE)) {
+								if(p.type == PieceType.PAWN) {
+									if(p.enPassantVulnerable) {
+										p.enPassantVulnerable = false;
+									}
+								}
+							}
+						}
+
+						//Generate the move...
+						AiMove move = player1.generateRandomMove(board, player1);
+						if(move == null) {
+							System.out.println("Something has gone wrong.");
+						}
+
+						//If the move is an en passant capture, remove the appropriate pawn.
+						if(move.piece.type == PieceType.PAWN) {
+							if(move.piece.xPos != move.move.x && board.isSpaceFree(move.move.x, move.move.y)) {
+								if(move.piece.color == PieceColor.BLACK) {
+									if(board.getPieceAt(move.move.x, move.move.y-1).enPassantVulnerable) {
+										board.claimedPieces.add(board.getPieceAt(move.move.x, move.move.y-1));
+										board.activePieces.remove(board.getPieceAt(move.move.x, move.move.y-1));
+									}
+								}else if(move.piece.color == PieceColor.WHITE) {
+									if(board.getPieceAt(move.move.x, move.move.y+1).enPassantVulnerable) {
+										board.claimedPieces.add(board.getPieceAt(move.move.x, move.move.y+1));
+										board.activePieces.remove(board.getPieceAt(move.move.x, move.move.y+1));
+									}
+								}
+
+							}
+						}
+
+						//Claim any piece existing on the move square
+						if(!board.isSpaceFree(move.move.x, move.move.y)) {
+							for(int i = 0; i < board.activePieces.size(); i++) {
+								if(board.activePieces.get(i).xPos == move.move.x && board.activePieces.get(i).yPos == move.move.y) {
+									board.claimedPieces.add(board.activePieces.get(i));
+									board.activePieces.remove(i);
+									break;
+								}
+							}														
+						}
+						//If the intended move moves a pawn two spaces, mark that pawn as en passant vulnerable.
+						if(move.piece.type == PieceType.PAWN) {
+							if((move.piece.yPos == 1 && move.move.y == 3) || (move.piece.yPos == 6 && move.move.y == 4)) {
+								move.piece.enPassantVulnerable = true;
+							}
+						}
+						move.piece.translateToNewLocation(move.move.x, move.move.y, player1, this);	
+
+
+
+						if(player1.color == PlayerColor.BLACK) {																						
+							//If the move is a promotion, upgrade the pawn.
+							//All AI promotions are queens
+							if(move.piece.yPos == 7 && move.piece.type==PieceType.PAWN) {							
+								board.getPieceAt(move.piece.xPos, move.piece.yPos).type = PieceType.QUEEN;							
+							}
+
+							//If the move is a castle, detect and move the appropriate rook
+							if(move.move.castle) {
+								if(move.move.x == 6 && move.move.y == 0) {
+									board.getPieceAt(7, 0).xPos = 5;
+								}else if(move.move.x == 2 && move.move.y == 0) {
+									board.getPieceAt(0, 0).xPos = 3;
+								}
+							}
+						}else {
+							if(move.piece.yPos == 0 && move.piece.type==PieceType.PAWN) {
+								board.getPieceAt(move.piece.xPos, move.piece.yPos).type = PieceType.QUEEN;
+							}
+
+							//If the move is a castle, detect and move the appropriate rook
+							if(move.move.castle) {
+								if(move.move.x == 6 && move.move.y == 7) {
+									board.getPieceAt(7, 7).xPos = 5;
+								}else if(move.move.x == 2 && move.move.y == 7) {
+									board.getPieceAt(0, 7).xPos = 3;
+								}
+							}
+						}										
+
+						if(player1.color == PlayerColor.WHITE)
+							moveCount++;
+						//Check if this move ended the game...
+						int possibleMoves = 0;
+						for(ClientPiece p : board.activePieces) {
+							if((p.color == PieceColor.BLACK && player2.color == PlayerColor.BLACK) || 
+									(p.color == PieceColor.WHITE && player2.color == PlayerColor.WHITE)) {
+								possibleMoves = possibleMoves + p.getAllValidMoves(board, player2).size();
+							}
+						}
+						if(ClientPieceLogic.getCheckState(board, player2)){
+							if(possibleMoves == 0){
+								System.out.println("CHECKMATE BY PLAYER 1!");
+								finalMove = player1.color;
+								gameEndState = GAME_END_STATE_CHECKMATE;
+								state = GameState.postgame;
+								ClientMenuManager.menu = ClientMenuManager.MenuState.postgame;
+							}
+						}else {
+							if(possibleMoves == 0) {
+								System.out.println("STALEMATE!");
+								gameEndState = GAME_END_STATE_STALEMATE;
+								state = GameState.postgame;
+								ClientMenuManager.menu = ClientMenuManager.MenuState.postgame;
+							}
+						}
+						player1Turn = false;
+					}
+				}else {
+					//Player 2 (Black)
+					moveTimer += delta;
+					if(moveTimer >= CPU_MINIMUM_WAIT_TIME) {
+						moveTimer = 0f;
+						//hvlFont(0).drawc("Waiting for opponent", Display.getWidth()/2, Display.getHeight()-20, 1.2f);
+						//Unmark any pieces as en passant vulnerable at the start of the turn.
+						for(ClientPiece p : board.activePieces) {
+							if((p.color == PieceColor.BLACK && player2.color == PlayerColor.BLACK) ||
+									(p.color == PieceColor.WHITE && player2.color == PlayerColor.WHITE)) {
+								if(p.type == PieceType.PAWN) {
+									if(p.enPassantVulnerable) {
+										p.enPassantVulnerable = false;
+									}
+								}
+							}
+						}
+
+						//Generate the move...
+						AiMove move = player2.generateRandomMove(board, player2);
+						if(move == null) {
+							System.out.println("Something has gone wrong.");
+						}
+
+						//If the move is an en passant capture, remove the appropriate pawn.
+						if(move.piece.type == PieceType.PAWN) {
+							if(move.piece.xPos != move.move.x && board.isSpaceFree(move.move.x, move.move.y)) {
+								if(move.piece.color == PieceColor.BLACK) {
+									if(board.getPieceAt(move.move.x, move.move.y-1).enPassantVulnerable) {
+										board.claimedPieces.add(board.getPieceAt(move.move.x, move.move.y-1));
+										board.activePieces.remove(board.getPieceAt(move.move.x, move.move.y-1));
+									}
+								}else if(move.piece.color == PieceColor.WHITE) {
+									if(board.getPieceAt(move.move.x, move.move.y+1).enPassantVulnerable) {
+										board.claimedPieces.add(board.getPieceAt(move.move.x, move.move.y+1));
+										board.activePieces.remove(board.getPieceAt(move.move.x, move.move.y+1));
+									}
+								}
+
+							}
+						}
+
+						//Claim any piece existing on the move square
+						if(!board.isSpaceFree(move.move.x, move.move.y)) {
+							for(int i = 0; i < board.activePieces.size(); i++) {
+								if(board.activePieces.get(i).xPos == move.move.x && board.activePieces.get(i).yPos == move.move.y) {
+									board.claimedPieces.add(board.activePieces.get(i));
+									board.activePieces.remove(i);
+									break;
+								}
+							}														
+						}
+						//If the intended move moves a pawn two spaces, mark that pawn as en passant vulnerable.
+						if(move.piece.type == PieceType.PAWN) {
+							if((move.piece.yPos == 1 && move.move.y == 3) || (move.piece.yPos == 6 && move.move.y == 4)) {
+								move.piece.enPassantVulnerable = true;
+							}
+						}
+						move.piece.translateToNewLocation(move.move.x, move.move.y, player2, this);	
+
+
+
+						if(player2.color == PlayerColor.BLACK) {																						
+							//If the move is a promotion, upgrade the pawn.
+							//All AI promotions are queens
+							if(move.piece.yPos == 7 && move.piece.type==PieceType.PAWN) {							
+								board.getPieceAt(move.piece.xPos, move.piece.yPos).type = PieceType.QUEEN;							
+							}
+
+							//If the move is a castle, detect and move the appropriate rook
+							if(move.move.castle) {
+								if(move.move.x == 6 && move.move.y == 0) {
+									board.getPieceAt(7, 0).xPos = 5;
+								}else if(move.move.x == 2 && move.move.y == 0) {
+									board.getPieceAt(0, 0).xPos = 3;
+								}
+							}
+						}else {
+							if(move.piece.yPos == 0 && move.piece.type==PieceType.PAWN) {
+								board.getPieceAt(move.piece.xPos, move.piece.yPos).type = PieceType.QUEEN;
+							}
+
+							//If the move is a castle, detect and move the appropriate rook
+							if(move.move.castle) {
+								if(move.move.x == 6 && move.move.y == 7) {
+									board.getPieceAt(7, 7).xPos = 5;
+								}else if(move.move.x == 2 && move.move.y == 7) {
+									board.getPieceAt(0, 7).xPos = 3;
+								}
+							}
+						}										
+
+						if(player2.color == PlayerColor.WHITE)
+							moveCount++;
+						//Check if this move ended the game...
+						int possibleMoves = 0;
+						for(ClientPiece p : board.activePieces) {
+							if((p.color == PieceColor.BLACK && player1.color == PlayerColor.BLACK) || 
+									(p.color == PieceColor.WHITE && player1.color == PlayerColor.WHITE)) {
+								possibleMoves = possibleMoves + p.getAllValidMoves(board, player1).size();
+							}
+						}
+						if(ClientPieceLogic.getCheckState(board, player2)){
+							if(possibleMoves == 0){
+								System.out.println("CHECKMATE BY PLAYER 2!");
+								finalMove = player2.color;
+								gameEndState = GAME_END_STATE_CHECKMATE;
+								state = GameState.postgame;
+								ClientMenuManager.menu = ClientMenuManager.MenuState.postgame;
+							}
+						}else {
+							if(possibleMoves == 0) {
+								System.out.println("STALEMATE!");
+								gameEndState = GAME_END_STATE_STALEMATE;
+								state = GameState.postgame;
+								ClientMenuManager.menu = ClientMenuManager.MenuState.postgame;
+							}
+						}
+						player1Turn = true;
+					}
+				}
+			}
 
 		}
 	}
