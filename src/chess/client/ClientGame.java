@@ -626,10 +626,10 @@ public class ClientGame {
 			if(gameEndState == GAME_END_STATE_CONTINUE) {
 				incrementDrawCount = true;
 				if(ClientPieceLogic.getCheckState(board, player1)) {
-					hvlFont(0).drawc("Player 1 is in check", Display.getWidth()/2+450, Display.getHeight()/2, 1.2f);
+					hvlFont(0).drawc("WHITE is in check", Display.getWidth()/2+450, Display.getHeight()/2, 1.2f);
 				}else {
 					if(ClientPieceLogic.getCheckState(board, player2)) {
-						hvlFont(0).drawc("Player 2 is in check", Display.getWidth()/2+450, Display.getHeight()/2, 1.2f);
+						hvlFont(0).drawc("BLACK is in check", Display.getWidth()/2+450, Display.getHeight()/2, 1.2f);
 					}			
 				}
 				if(player1Turn) {
@@ -872,7 +872,7 @@ public class ClientGame {
 								possibleMoves = possibleMoves + p.getAllValidMoves(board, player1).size();
 							}
 						}
-						if(ClientPieceLogic.getCheckState(board, player2)){
+						if(ClientPieceLogic.getCheckState(board, player1)){
 							if(possibleMoves == 0){
 								System.out.println("CHECKMATE BY PLAYER 2!");
 								finalMove = player2.color;

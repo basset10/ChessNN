@@ -24,7 +24,7 @@ public class ClientMain extends HvlTemplateI{
 	}
 
 	public ClientMain() {
-		super(new HvlDisplayWindowed(144, 1280, 720, "Chess Simulator", true));
+		super(new HvlDisplayWindowed(144, 1280, 720, "Chess Simulator", false));
 		// TODO Auto-generated constructor stub
 	}
 
