@@ -28,7 +28,6 @@ public class ClientPlayer {
 	//Begin by selecting a random valid move from a list of all valid moves for this player.
 	public AiMove generateRandomMove(ClientBoard board, ClientPlayer player) {
 
-
 		ArrayList<ClientPiece> possiblePieces = new ArrayList<ClientPiece>();
 		ArrayList<ClientMove> possibleMoves = new ArrayList<ClientMove>();
 
@@ -52,7 +51,6 @@ public class ClientPlayer {
 			return null;
 		}
 
-
 		boolean legalPieceFlag = true;
 		ClientPiece selectedPiece = null;
 
@@ -64,7 +62,6 @@ public class ClientPlayer {
 				pieceIndex = rng.nextInt(possiblePieces.size());
 			}
 		}
-
 
 		System.out.println("Chosen Piece: " + selectedPiece.type.toString());
 		possibleMoves.addAll(selectedPiece.getAllValidMoves(board, player));
