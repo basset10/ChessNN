@@ -8,12 +8,15 @@ import static com.osreboot.ridhvl2.HvlStatics.hvlQuadc;
 import static com.osreboot.ridhvl2.HvlStatics.hvlCirclec;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.Random;
 
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.Display;
 import org.newdawn.slick.Color;
 
+import com.osreboot.ridhvl2.HvlConfig;
 import com.osreboot.ridhvl2.HvlMath;
 import com.osreboot.ridhvl2.painter.HvlCircle;
 
@@ -25,6 +28,8 @@ import chess.client.menu.ClientMenuManager;
 import chess.common.Util;
 
 public class ClientGame {
+
+	boolean autoTrain = false;
 
 	//Always draw the board from Player 1's perspective.
 	//If a human player is present, they will always be Player 1.
@@ -62,22 +67,34 @@ public class ClientGame {
 	public int moveCount = 0;
 	//Counts the number of consecutive moves  with no capture or pawn moves.
 	//Increments only when Black moves.
-	//If this reaches 100, the game draws.
+	//If this reaches 50, the game draws.
 	public int drawCount = 0;
-	boolean incrementDrawCount = true;
+	public boolean incrementDrawCount = true;
 	//The length of time taken by the CPU to make a move.
 	public float moveTimer = 0f;
 	//Used for switching between training and playing mode.
 	public static boolean training;
 
-	private String id;		
-	private boolean debug = false;
-	private ArrayList<ClientMove> validMoves = new ArrayList<ClientMove>();
-	private int selectedPiecexPos = -1;
-	private int selectedPieceyPos = -1;	
-	private boolean promotionUI = false;
-	private int promotionX = -1;
-	private int promotionY = -1;
+	public int whiteWinCount = 0;
+	public int blackWinCount = 0;
+	public int stalemateCount = 0;
+
+	public int totalWhiteWinCount = 0;
+	public int totalBlackWinCount = 0;
+	public int totalStalemateCount = 0;
+
+	//Used to track which game is being currently played this training generation.
+	//Caps at GeneticsHandler.GAMES_PER_GENERATION
+	public int gameThisGen = 1;
+
+	public String id;		
+	public boolean debug = false;
+	public ArrayList<ClientMove> validMoves = new ArrayList<ClientMove>();
+	public int selectedPiecexPos = -1;
+	public int selectedPieceyPos = -1;	
+	public boolean promotionUI = false;
+	public int promotionX = -1;
+	public int promotionY = -1;
 
 	public ClientGame(String id) {
 		this.id = id;
@@ -116,10 +133,18 @@ public class ClientGame {
 		moveCount = 0;
 		promotionUI = false;
 		boardInitialized = false;
+		//GeneticsHandler.init();
 
 	}
 
 	public void update(float delta){
+
+		///?Champion Saving????
+		if(Keyboard.isKeyDown(Keyboard.KEY_S)) {
+			Collections.sort(GeneticsHandler.population, GeneticsHandler.compareByScore);
+			HvlConfig.PJSON.save(GeneticsHandler.population.get(0).decisionNet, "championNetwork.json");
+		}
+		//////////////////////
 
 		if(state == GameState.menu) {
 			ClientMenuManager.manageMenus(this);
@@ -143,6 +168,7 @@ public class ClientGame {
 				}else if(ClientMenuMain.color == ClientMenuMain.ColorSelection.WHITE) {
 					player1.color = PlayerColor.WHITE;
 					player2.color = PlayerColor.BLACK;
+					player2.rng = new Random("poggers".hashCode());
 					player1Turn = true;
 				}else if(ClientMenuMain.color == ClientMenuMain.ColorSelection.BLACK) {
 					player1.color = PlayerColor.BLACK;
@@ -152,6 +178,7 @@ public class ClientGame {
 				board = new ClientBoard(player1);
 				board.initialize(player1);
 				boardInitialized = true;
+				GeneticsHandler.init();
 			}
 			board.update(delta, player1);
 			drawValidMoves();
@@ -459,7 +486,7 @@ public class ClientGame {
 					}
 				}else {
 					moveTimer += delta;
-					System.out.println(moveTimer);
+					//System.out.println(moveTimer);
 					if(moveTimer >= CPU_MINIMUM_WAIT_TIME) {
 						moveTimer = 0f;
 						hvlFont(0).drawc("Waiting for opponent", Display.getWidth()/2, Display.getHeight()-20, 1.2f);
@@ -599,23 +626,79 @@ public class ClientGame {
 
 		}else if(state == GameState.training || (state == GameState.postgame && training == true)) {
 			if(state == GameState.postgame){
-				ClientMenuManager.manageMenus(this);
-				if(gameEndState == GAME_END_STATE_STALEMATE) {
-					hvlFont(0).drawc("Stalemate in " + moveCount + " moves.", Display.getWidth()/2, Display.getHeight()-20, 1.2f);	
-				}else if( gameEndState == GAME_END_STATE_CHECKMATE) {
-					hvlFont(0).drawc("Checkmate by " + finalMove.toString() + " in " + moveCount + " moves.", Display.getWidth()/2, Display.getHeight()-20, 1.2f);	
+
+
+
+				//LOOP FOR NUMBER OF GAMES PER GENERATION
+				GeneticsHandler.population.get(gameThisGen-1).fitness = GeneticsHandler.calcFitness(player1, this);
+				if(gameThisGen < GeneticsHandler.GAMES_PER_GENERATION) {
+					//Switch to next player in population and reset
+					gameThisGen++;
+					validMoves = new ArrayList<ClientMove>();
+					selectedPiecexPos = -1;
+					selectedPieceyPos = -1;
+					drawCount = 0;
+					incrementDrawCount = true;
+					//state = GameState.menu;
+					inCheck = false;
+					gameEndState = GAME_END_STATE_CONTINUE;
+					finalMove = null;
+					moveCount = 0;
+					promotionUI = false;
+					//System.out.println("Re-Initializing Board!");
+					player1 = GeneticsHandler.population.get(gameThisGen-1);
+					player1.color = PlayerColor.WHITE;
+					player2.color = PlayerColor.BLACK;
+					player1Turn = true;
+
+					player2.rng = new Random("poggers".hashCode());
+					board = new ClientBoard(player1);
+					board.initialize(player1);
+					boardInitialized = true;
+					player2.rng = new Random("poggers".hashCode());
+					state = GameState.training;
+				}else {
+
+
+					//Manage menu AFTER generation has completed
+					//During this phase, also operate all genetic algorithms with a completed population list.
+					//Where does decisionNet information get updated?
+					ClientMenuManager.manageMenus(this);
+					/*if(gameEndState == GAME_END_STATE_STALEMATE) {
+						hvlFont(0).drawc("Stalemate in " + moveCount + " moves.", Display.getWidth()/2, Display.getHeight()-20, 1.2f);	
+					}else if( gameEndState == GAME_END_STATE_CHECKMATE) {
+						hvlFont(0).drawc("Checkmate by " + finalMove.toString() + " in " + moveCount + " moves.", Display.getWidth()/2, Display.getHeight()-20, 1.2f);	
+					}*/
+
+					hvlFont(0).drawc("GENERATION " + GeneticsHandler.currentGeneration, Display.getWidth()/2, Display.getHeight()-133, 1.2f);
+					hvlFont(0).drawc("White won " + whiteWinCount + " games this generation. ( " + ((float)whiteWinCount/(float)GeneticsHandler.GAMES_PER_GENERATION)*100 + " percent )  [ " + totalWhiteWinCount + " total wins ]" , Display.getWidth()/2, Display.getHeight()-100, 1.2f);
+					hvlFont(0).drawc("Black won " + blackWinCount + " games this generation. ( " + ((float)blackWinCount/(float)GeneticsHandler.GAMES_PER_GENERATION)*100 + " percent )  [ " + totalBlackWinCount + " total wins ]", Display.getWidth()/2, Display.getHeight()-66, 1.2f);
+					hvlFont(0).drawc(stalemateCount + " games ended in stalemate this generation. ( " + ((float)stalemateCount/(float)GeneticsHandler.GAMES_PER_GENERATION)*100 + " percent )  [ " + totalStalemateCount + " total stalemates ]", Display.getWidth()/2, Display.getHeight()-33, 1.2f);
+					float total = 0;
+					
+						for(ClientPlayer c : GeneticsHandler.population) {
+							total += c.getFitness();
+						}
+						//System.out.println("AVERAGE FITNESS: " + total/GeneticsHandler.GAMES_PER_GENERATION);
+					
+					
+
 				}
 			}
 			if(!boardInitialized) {
-
+				//System.out.println("Initializing Board!");
+				GeneticsHandler.init();
+				player1 = GeneticsHandler.population.get(gameThisGen-1);
 				player1.color = PlayerColor.WHITE;
 				player2.color = PlayerColor.BLACK;
+				player2.rng = new Random("poggers".hashCode());
 				player1Turn = true;
 
 				board = new ClientBoard(player1);
 				board.initialize(player1);
 				boardInitialized = true;
 			}
+			//System.out.println(GeneticsHandler.population.size());
 			board.update(delta, player1);
 			for(ClientPiece p : board.activePieces) {
 				if(p.inMotion) {							
@@ -631,6 +714,14 @@ public class ClientGame {
 					if(ClientPieceLogic.getCheckState(board, player2)) {
 						hvlFont(0).drawc("BLACK is in check", Display.getWidth()/2+450, Display.getHeight()/2, 1.2f);
 					}			
+				}
+				if(board.activePieces.size() == 2) {
+					//System.out.println("STALEMATE!");
+					gameEndState = GAME_END_STATE_STALEMATE;
+					stalemateCount++;
+					totalStalemateCount++;
+					state = GameState.postgame;
+					ClientMenuManager.menu = ClientMenuManager.MenuState.postgame;
 				}
 				if(player1Turn) {
 					moveTimer += delta;
@@ -649,7 +740,18 @@ public class ClientGame {
 						}
 
 						//Generate the move...
-						AiMove move = player1.generateRandomMove(board, player1);
+						player1.updateNetwork(this);
+						AiMove move;
+						player1.incomingMoveToExecute = player1.readOutputLayer(board);
+
+						if(player1.incomingMoveToExecute != null) {
+							move = player1.incomingMoveToExecute;
+							player1.incomingMoveToExecute = null;
+						}else {
+							move = player1.generateRandomMove(board, player1);
+						}
+
+
 						if(move == null) {
 							System.out.println("Something has gone wrong.");
 						}
@@ -701,7 +803,7 @@ public class ClientGame {
 						if(player1.color == PlayerColor.BLACK) {																						
 							//If the move is a promotion, upgrade the pawn.
 							//All AI promotions are queens
-							if(move.piece.yPos == 7 && move.piece.type==PieceType.PAWN) {							
+							if(move.piece.yPos == 3 && move.piece.type==PieceType.PAWN) {							
 								board.getPieceAt(move.piece.xPos, move.piece.yPos).type = PieceType.QUEEN;							
 							}
 
@@ -740,16 +842,20 @@ public class ClientGame {
 						}
 						if(ClientPieceLogic.getCheckState(board, player2)){
 							if(possibleMoves == 0){
-								System.out.println("CHECKMATE BY PLAYER 1!");
+							//	System.out.println("CHECKMATE BY PLAYER 1!");
 								finalMove = player1.color;
 								gameEndState = GAME_END_STATE_CHECKMATE;
+								whiteWinCount++;
+								totalWhiteWinCount++;
 								state = GameState.postgame;
 								ClientMenuManager.menu = ClientMenuManager.MenuState.postgame;
 							}
 						}else {
 							if(possibleMoves == 0) {
-								System.out.println("STALEMATE!");
+							//	System.out.println("STALEMATE!");
 								gameEndState = GAME_END_STATE_STALEMATE;
+								stalemateCount++;
+								totalStalemateCount++;
 								state = GameState.postgame;
 								ClientMenuManager.menu = ClientMenuManager.MenuState.postgame;
 							}
@@ -757,9 +863,11 @@ public class ClientGame {
 						if(incrementDrawCount) {
 							drawCount++;
 						}
-						if(drawCount >= 100) {
-							System.out.println("STALEMATE!");
+						if(drawCount >= 50) {
+							//System.out.println("STALEMATE!");
 							gameEndState = GAME_END_STATE_STALEMATE;
+							stalemateCount++;
+							totalStalemateCount++;
 							state = GameState.postgame;
 							ClientMenuManager.menu = ClientMenuManager.MenuState.postgame;
 						}
@@ -784,7 +892,15 @@ public class ClientGame {
 						}
 
 						//Generate the move...
-						AiMove move = player2.generateRandomMove(board, player2);
+						AiMove move;
+
+						if(player2.incomingMoveToExecute != null) {
+							move = player2.incomingMoveToExecute;
+							player2.incomingMoveToExecute = null;
+						}else {
+							move = player2.generateRandomMove(board, player2);
+						}
+
 						if(move == null) {
 							System.out.println("Something has gone wrong.");
 						}
@@ -835,7 +951,7 @@ public class ClientGame {
 						if(player2.color == PlayerColor.BLACK) {																						
 							//If the move is a promotion, upgrade the pawn.
 							//All AI promotions are queens
-							if(move.piece.yPos == 7 && move.piece.type==PieceType.PAWN) {							
+							if(move.piece.yPos == 3 && move.piece.type==PieceType.PAWN) {							
 								board.getPieceAt(move.piece.xPos, move.piece.yPos).type = PieceType.QUEEN;							
 							}
 
@@ -874,16 +990,20 @@ public class ClientGame {
 						}
 						if(ClientPieceLogic.getCheckState(board, player1)){
 							if(possibleMoves == 0){
-								System.out.println("CHECKMATE BY PLAYER 2!");
+							//	System.out.println("CHECKMATE BY PLAYER 2!");
 								finalMove = player2.color;
 								gameEndState = GAME_END_STATE_CHECKMATE;
+								blackWinCount++;
+								totalBlackWinCount++;
 								state = GameState.postgame;
 								ClientMenuManager.menu = ClientMenuManager.MenuState.postgame;
 							}
 						}else {
 							if(possibleMoves == 0) {
-								System.out.println("STALEMATE!");
+								//System.out.println("STALEMATE!");
 								gameEndState = GAME_END_STATE_STALEMATE;
+								stalemateCount++;
+								totalStalemateCount++;
 								state = GameState.postgame;
 								ClientMenuManager.menu = ClientMenuManager.MenuState.postgame;
 							}
@@ -891,9 +1011,11 @@ public class ClientGame {
 						if(incrementDrawCount) {
 							drawCount++;
 						}
-						if(drawCount >= 100) {
-							System.out.println("STALEMATE!");
+						if(drawCount >= 50) {
+						//	System.out.println("STALEMATE!");
 							gameEndState = GAME_END_STATE_STALEMATE;
+							stalemateCount++;
+							totalStalemateCount++;
 							state = GameState.postgame;
 							ClientMenuManager.menu = ClientMenuManager.MenuState.postgame;
 						}

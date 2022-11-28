@@ -10,8 +10,11 @@ import com.osreboot.ridhvl2.HvlMath;
 import com.osreboot.ridhvl2.HvlConfig;
 import com.samuel.Network;
 
+import chess.client.ClientPlayer.PlayerColor;
+
 public class GeneticsHandler {
-	public static final int MAX_POP = 10000;
+	//Games are played and displayed one at a time.
+	public static final int GAMES_PER_GENERATION = 500;
 
 	public static int currentGeneration = 1;
 	public static ArrayList<ClientPlayer> population;
@@ -27,17 +30,17 @@ public class GeneticsHandler {
 		File bestPlayerData = new File("championNetwork.json");
 		if (bestPlayerData.exists()) {
 			Network championNet = HvlConfig.PJSON.load("championNetwork.json");
-			ClientPlayer p = new ClientPlayer(UUID.randomUUID().toString(), false);
+			ClientPlayer p = new ClientPlayer("", false);
 
 			p.setNetwork(championNet);
 			populate(p);
 
-			for (int i = 1; i < MAX_POP; i++) {
-				populate(new ClientPlayer(UUID.randomUUID().toString(), false));
+			for (int i = 1; i < GAMES_PER_GENERATION; i++) {
+				populate(new ClientPlayer("", false));
 			}
 		} else {
-			for (int i = 0; i < MAX_POP; i++) {
-				populate(new ClientPlayer(UUID.randomUUID().toString(), false));
+			for (int i = 0; i < GAMES_PER_GENERATION; i++) {
+				populate(new ClientPlayer("", false));
 			}
 		}
 	}
@@ -46,18 +49,17 @@ public class GeneticsHandler {
 		population.add(p);
 	}
 
-	public static float calcFitness(ClientPlayer p) {
+	//ONLY WHITE GETS TRAINED
+	public static float calcFitness(ClientPlayer p, ClientGame g) {
 
-		int finishIndex = Game.trackGen.tracks.size() - 1;
-		int playerTrack = Game.trackGen.tracks.indexOf(p.closestTrack());
-		if (p.trackComplete) {
-			return (p.finalTrackTime) / 1000;
-		} else if (!p.trackComplete && finishIndex - playerTrack == 0) {
-			return 0.5f + Math.abs(HvlMath.map(
-					HvlMath.distance(p.closestTrack().xPos, p.closestTrack().yPos, p.getXPos(), p.getYPos()), 0,
-					1.5f * Track.TRACK_SIZE, 0f, 0.49f));
-		} else {
-			return (finishIndex - playerTrack) ;
+		//Chess version - Check if player won, how many moves were made, MAYBE how many captures were made or friendly pieces remaining?
+		//Lower fitness is better(??)		
+		if(g.gameEndState == ClientGame.GAME_END_STATE_CHECKMATE && g.finalMove == PlayerColor.WHITE) {
+			return (float)g.moveCount/1000;
+		}else if(g.gameEndState == ClientGame.GAME_END_STATE_STALEMATE) {
+			return (float)g.moveCount;
+		}else{
+			return 10000f;
 		}
 	}
 
@@ -70,18 +72,18 @@ public class GeneticsHandler {
 		newPar2.setNetwork(Network.deepCopy(parent2Network));
 		populate(newPar1);
 		populate(newPar2);
-		
-		for (int i = 0; i < (MAX_POP - 2); i++) {
+
+		for (int i = 0; i < (GAMES_PER_GENERATION - 2); i++) {
 			mutatePlayer(crossOverGenes(newPar1, newPar2));
 		}
-		
-		
+
+
 	}
 
 	public static void fillWithRankedChoice() {
 		int totalRank = getTotalRank();
 		int[] probList = generateProbList();
-		for (int i = 0; i < (MAX_POP - 2); i++) {
+		for (int i = 0; i < (GAMES_PER_GENERATION - 2); i++) {
 			Random r = new Random();
 			int s1 = r.nextInt(totalRank);
 			int s2 = r.nextInt(totalRank);
@@ -96,12 +98,12 @@ public class GeneticsHandler {
 
 			mutatePlayer(crossOverGenes(newPar1, newPar2));
 		}
-		
+
 	}
 
 	private static int getTotalRank() {
 		int rankTotal = 0;
-		for (int r = MAX_POP; r > 0; r--) {
+		for (int r = GAMES_PER_GENERATION; r > 0; r--) {
 			rankTotal += r;
 		}
 
@@ -109,19 +111,19 @@ public class GeneticsHandler {
 	}
 
 	public static int[] generateProbList() {
-		int[] probList = new int[MAX_POP + 1];
-		for (int i = MAX_POP + 1; i > 0; i--) {
-			if (i == MAX_POP + 1) {
-				probList[MAX_POP + 1 - i] = 0;
+		int[] probList = new int[GAMES_PER_GENERATION + 1];
+		for (int i = GAMES_PER_GENERATION + 1; i > 0; i--) {
+			if (i == GAMES_PER_GENERATION + 1) {
+				probList[GAMES_PER_GENERATION + 1 - i] = 0;
 			} else {
-				probList[MAX_POP - i + 1] = i + probList[MAX_POP + 1 - i - 1];
+				probList[GAMES_PER_GENERATION - i + 1] = i + probList[GAMES_PER_GENERATION + 1 - i - 1];
 			}
 		}
 		return probList;
 	}
 
 	private static ClientPlayer rankedChoiceRoulette(int selection, int[] probList) {
-		for (int s = 0; s < MAX_POP; s++) {
+		for (int s = 0; s < GAMES_PER_GENERATION; s++) {
 			if (selection >= probList[s] && selection < probList[s + 1]) {
 				return oldPop.get(s);
 			}
@@ -129,7 +131,7 @@ public class GeneticsHandler {
 		return null;
 	}
 
-	public static ClientPlayer crossOverGenes(Player c1, Player c2) {
+	public static ClientPlayer crossOverGenes(ClientPlayer c1, ClientPlayer c2) {
 
 		ClientPlayer child = new ClientPlayer(UUID.randomUUID().toString(), false);
 
@@ -183,7 +185,7 @@ public class GeneticsHandler {
 		}
 	};
 
-//	public static void setHero(Player p) {
-//		hero = p;
-//	}
+	//	public static void setHero(Player p) {
+	//		hero = p;
+	//	}
 }

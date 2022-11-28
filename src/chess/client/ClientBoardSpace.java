@@ -42,8 +42,8 @@ public class ClientBoardSpace {
 	
 	//Returns the exact center coordinate of the referenced grid square
 	public HvlCoord getPixelPosition() {
-		return new HvlCoord((xPos)*SPACE_SIZE + Display.getWidth()/2 - ((SPACE_SIZE * 4) - SPACE_SIZE/2),
-				(yPos)*SPACE_SIZE + Display.getHeight()/2 - ((SPACE_SIZE * 4) - SPACE_SIZE/2));
+		return new HvlCoord((xPos)*SPACE_SIZE + Display.getWidth()/2 - ((SPACE_SIZE * 2) - SPACE_SIZE/2),
+				(yPos)*SPACE_SIZE + Display.getHeight()/2 - ((SPACE_SIZE * 2) - SPACE_SIZE/2));
 	}	
 
 }

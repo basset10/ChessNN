@@ -30,11 +30,7 @@ public class ClientPieceLogic{
 				break;
 			}
 		}
-		if(getCheckState(sim, playerArg)) {
-			return false;
-		}else {
-			return true;
-		}
+		return !getCheckState(sim,playerArg);
 	}
 
 	public static int getGameEndState(ClientBoard board, ClientPlayer player, boolean checkStateArg) {
@@ -214,19 +210,19 @@ public class ClientPieceLogic{
 		if(pieceArg.yPos >= 1) {
 			singleSquareCheck(pieceArg.xPos, pieceArg.yPos-1,  moves, pieceArg, boardArg, player, checkTest);
 		}
-		if(pieceArg.yPos >= 1 & pieceArg.xPos <= 6) {
+		if(pieceArg.yPos >= 1 & pieceArg.xPos <= 2) {
 			singleSquareCheck(pieceArg.xPos+1, pieceArg.yPos-1,  moves, pieceArg, boardArg, player, checkTest);
 		}
-		if(pieceArg.xPos <= 6) {
+		if(pieceArg.xPos <= 2) {
 			singleSquareCheck(pieceArg.xPos+1, pieceArg.yPos,  moves, pieceArg, boardArg, player, checkTest);
 		}
-		if(pieceArg.yPos <= 6 & pieceArg.xPos <= 6) {
+		if(pieceArg.yPos <= 2 & pieceArg.xPos <= 2) {
 			singleSquareCheck(pieceArg.xPos+1, pieceArg.yPos+1,  moves, pieceArg, boardArg, player, checkTest);
 		}
-		if(pieceArg.yPos <= 6) {
+		if(pieceArg.yPos <= 2) {
 			singleSquareCheck(pieceArg.xPos, pieceArg.yPos+1,  moves, pieceArg, boardArg, player, checkTest);
 		}
-		if(pieceArg.yPos <= 6 & pieceArg.xPos >= 1) {
+		if(pieceArg.yPos <= 2 & pieceArg.xPos >= 1) {
 			singleSquareCheck(pieceArg.xPos-1, pieceArg.yPos+1,  moves, pieceArg, boardArg, player, checkTest);
 		}
 		if(pieceArg.xPos >= 1) {
@@ -398,7 +394,7 @@ public class ClientPieceLogic{
 				}
 			}
 			//Attacking moves
-			if(pieceArg.xPos + 1 <= 7 && pieceArg.yPos-1 >= 0) {
+			if(pieceArg.xPos + 1 <= 3 && pieceArg.yPos-1 >= 0) {
 				pawnAttackCheck(pieceArg.xPos+1, pieceArg.yPos-1, moves, pieceArg, boardArg, player, checkTest);
 			}
 			if(pieceArg.xPos - 1 >= 0 && pieceArg.yPos-1 >= 0) {
@@ -458,7 +454,7 @@ public class ClientPieceLogic{
 					}
 				}
 			}else {
-				if(pieceArg.yPos+1 <= 7) {
+				if(pieceArg.yPos+1 <= 3) {
 					if(boardArg.isSpaceFree(pieceArg.xPos, pieceArg.yPos+1)) {
 						if(checkTest) {
 							if(legalMoveCheck(pieceArg.xPos, pieceArg.yPos+1, pieceArg, boardArg, player))
@@ -470,10 +466,10 @@ public class ClientPieceLogic{
 				}
 			}
 			//Attacking moves
-			if(pieceArg.xPos + 1 <= 7 && pieceArg.yPos+1 <= 7) {
+			if(pieceArg.xPos + 1 <= 3 && pieceArg.yPos+1 <= 3) {
 				pawnAttackCheck(pieceArg.xPos+1, pieceArg.yPos+1, moves, pieceArg, boardArg, player, checkTest);
 			}
-			if(pieceArg.xPos - 1 >= 0 && pieceArg.yPos+1 <= 7) {
+			if(pieceArg.xPos - 1 >= 0 && pieceArg.yPos+1 <= 3) {
 				pawnAttackCheck(pieceArg.xPos-1, pieceArg.yPos+1, moves, pieceArg, boardArg, player, checkTest);		
 			}
 		}
@@ -518,7 +514,7 @@ public class ClientPieceLogic{
 	}
 
 	private static void diagonalMoveCheck(ArrayList<ClientMove> moves, ClientPiece pieceArg, ClientBoard boardArg, ClientPlayer player, boolean checkTest) {
-		for(int i = 1; i <= 7; i++) {
+		for(int i = 1; i <= 3; i++) {
 			boolean escape = false;
 			if(pieceArg.xPos-i >=0 && pieceArg.yPos-i >=0) {
 				if(boardArg.isSpaceFree(pieceArg.xPos-i, pieceArg.yPos-i)) {
@@ -547,9 +543,9 @@ public class ClientPieceLogic{
 			if(escape) break;
 		}
 		//Upper-right squares
-		for(int i = 1; i <= 7; i++) {
+		for(int i = 1; i <= 3; i++) {
 			boolean escape = false;
-			if(pieceArg.xPos+i <=7 && pieceArg.yPos-i >=0) {
+			if(pieceArg.xPos+i <=3 && pieceArg.yPos-i >=0) {
 				if(boardArg.isSpaceFree(pieceArg.xPos+i, pieceArg.yPos-i)) {
 					if(checkTest) {
 						if(legalMoveCheck(pieceArg.xPos+i, pieceArg.yPos-i, pieceArg, boardArg, player))
@@ -576,9 +572,9 @@ public class ClientPieceLogic{
 			if(escape) break;
 		}
 		//Lower-left squares
-		for(int i = 1; i <= 7; i++) {
+		for(int i = 1; i <= 3; i++) {
 			boolean escape = false;
-			if(pieceArg.xPos-i >=0 && pieceArg.yPos+i <=7) {
+			if(pieceArg.xPos-i >=0 && pieceArg.yPos+i <=3) {
 				if(boardArg.isSpaceFree(pieceArg.xPos-i, pieceArg.yPos+i)) {
 					if(checkTest) {
 						if(legalMoveCheck(pieceArg.xPos-i, pieceArg.yPos+i, pieceArg, boardArg, player))
@@ -605,9 +601,9 @@ public class ClientPieceLogic{
 			if(escape) break;
 		}
 		//Lower-right squares
-		for(int i = 1; i <= 7; i++) {
+		for(int i = 1; i <= 3; i++) {
 			boolean escape = false;
-			if(pieceArg.xPos+i <=7 && pieceArg.yPos+i <=7) {
+			if(pieceArg.xPos+i <=3 && pieceArg.yPos+i <=3) {
 				if(boardArg.isSpaceFree(pieceArg.xPos+i, pieceArg.yPos+i)) {
 					if(checkTest) {
 						if(legalMoveCheck(pieceArg.xPos+i, pieceArg.yPos+i, pieceArg, boardArg, player))
@@ -636,7 +632,7 @@ public class ClientPieceLogic{
 	}
 
 	private static void straightMoveCheck(ArrayList<ClientMove> moves, ClientPiece pieceArg, ClientBoard boardArg, ClientPlayer player, boolean checkTest) {
-		for(int i = pieceArg.xPos+1; i <= 7; i++) {
+		for(int i = pieceArg.xPos+1; i <= 3; i++) {
 			boolean escape = false;
 			if(boardArg.isSpaceFree(i, pieceArg.yPos)) {
 				if(checkTest) {
@@ -686,7 +682,7 @@ public class ClientPieceLogic{
 			if(escape) break;
 		}
 		//Lower squares
-		for(int i = pieceArg.yPos+1; i <= 7; i++) {
+		for(int i = pieceArg.yPos+1; i <= 3; i++) {
 			boolean escape = false;
 			if(boardArg.isSpaceFree(pieceArg.xPos, i)) {
 				if(checkTest) {

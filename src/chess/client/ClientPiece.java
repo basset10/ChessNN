@@ -74,13 +74,13 @@ public class ClientPiece {
 
 	public HvlCoord getPixelPosition(ClientPlayer p) {
 		if(p.color == PlayerColor.WHITE) {
-			return new HvlCoord((xPos)*ClientBoardSpace.SPACE_SIZE + Display.getWidth()/2 - ((ClientBoardSpace.SPACE_SIZE * 4) - ClientBoardSpace.SPACE_SIZE/2),
-					(yPos)*ClientBoardSpace.SPACE_SIZE + Display.getHeight()/2 - ((ClientBoardSpace.SPACE_SIZE * 4) - ClientBoardSpace.SPACE_SIZE/2));
+			return new HvlCoord((xPos)*ClientBoardSpace.SPACE_SIZE + Display.getWidth()/2 - ((ClientBoardSpace.SPACE_SIZE * 2) - ClientBoardSpace.SPACE_SIZE/2),
+					(yPos)*ClientBoardSpace.SPACE_SIZE + Display.getHeight()/2 - ((ClientBoardSpace.SPACE_SIZE * 2) - ClientBoardSpace.SPACE_SIZE/2));
 
 		}else {
 
-			return new HvlCoord((xPos)*-ClientBoardSpace.SPACE_SIZE + Display.getWidth()/2 + ((ClientBoardSpace.SPACE_SIZE * 4) - ClientBoardSpace.SPACE_SIZE/2),
-					(yPos)*-ClientBoardSpace.SPACE_SIZE + Display.getHeight()/2 + ((ClientBoardSpace.SPACE_SIZE * 4) - ClientBoardSpace.SPACE_SIZE/2));
+			return new HvlCoord((xPos)*-ClientBoardSpace.SPACE_SIZE + Display.getWidth()/2 + ((ClientBoardSpace.SPACE_SIZE * 2) - ClientBoardSpace.SPACE_SIZE/2),
+					(yPos)*-ClientBoardSpace.SPACE_SIZE + Display.getHeight()/2 + ((ClientBoardSpace.SPACE_SIZE * 2) - ClientBoardSpace.SPACE_SIZE/2));
 
 		}
 	}
