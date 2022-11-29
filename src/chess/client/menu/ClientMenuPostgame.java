@@ -13,6 +13,8 @@ import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.Display;
 import org.newdawn.slick.Color;
 
+import com.samuel.Network;
+
 import chess.common.Util;
 import chess.client.ClientBoard;
 import chess.client.ClientGame;
@@ -37,13 +39,13 @@ public class ClientMenuPostgame {
 				//ArrayList<ClientPlayer>topPlayers = new ArrayList<ClientPlayer>();
 				//Collections.sort(GeneticsHandler.population, GeneticsHandler.compareByScore);
 
-				
-				
-				
-				
-			//	for(int i = 0; i < 100; i++) {
-			//		topPlayers.add(GeneticsHandler.population.get(i));
-			//	}
+
+
+
+
+				//	for(int i = 0; i < 100; i++) {
+				//		topPlayers.add(GeneticsHandler.population.get(i));
+				//	}
 				//ClientPlayer par1 = GeneticsHandler.population.get(0);
 				//ClientPlayer par2 = GeneticsHandler.population.get(1);
 				/*
@@ -52,49 +54,72 @@ public class ClientMenuPostgame {
 				}
 				 */
 				//GeneticsHandler.oldPop = new ArrayList<ClientPlayer>(GeneticsHandler.population);
-				
-				
+
+
 				//Number of winners not always increasing - perhaps black is not using seeded movement every generation
-				ArrayList<ClientPlayer>topPlayers = new ArrayList<ClientPlayer>();
 				
+				int count = 1;
 				for(ClientPlayer c : GeneticsHandler.population) {
-					if(c.getFitness() <= 1) {
-						topPlayers.add(c);
-					}
+					System.out.println("Network " + count);
+					System.out.println("Bias:");
+					System.out.println(c.decisionNet.layers.get(1).nodes.get(0).bias);
+					System.out.println("First Weight: ");
+					System.out.println(c.decisionNet.layers.get(1).nodes.get(0).connectionWeights.get(0));
+					System.out.println("Type:");
+					System.out.println(c.decisionNet.layers.get(1).nodes.get(0).type);
+					System.out.println();
+					count++;
+					
 				}
 				
-				System.out.println(topPlayers.size() + " players with fitness less than 1");
 				
-				GeneticsHandler.population.clear();
+				if(GeneticsHandler.currentGeneration == 1) {
 
-			/*	for(ClientPlayer c : topPlayers) {
+					ArrayList<ClientPlayer>topPlayers = new ArrayList<ClientPlayer>();
+			
+					Network championNetwork = null;
+					float championFitness = 1;
+
+					for(ClientPlayer c : GeneticsHandler.population) {
+						if(c.getFitness() <= championFitness) {
+							championNetwork = Network.deepCopy(c.decisionNet);
+							championFitness = c.getFitness();
+						}
+					}
+
+					System.out.println(topPlayers.size() + " players with fitness less than 1");
+
+					GeneticsHandler.population.clear();
+
+					/*	for(ClientPlayer c : topPlayers) {
 					GeneticsHandler.population.add(c);
 				}*/
-				
-				for(int i = 0; i < 500; i++) {
-					GeneticsHandler.population.add(topPlayers.get(0));
+
+					for(int i = 0; i < 500; i++) {
+						GeneticsHandler.population.add(new ClientPlayer("", false));
+						GeneticsHandler.population.get(i).decisionNet = Network.deepCopy(championNetwork);
+					}
 				}
-				
 				//int remaining = 500 - topPlayers.size();
-				
+
 				//for(int i = 0; i < remaining; i++) {
 				//	GeneticsHandler.populate(new ClientPlayer("", false));
 				//}
-				
-				
-			//	for(int i = 0; i < 100; i++) {
-			//		for(int j = 0; j < 4; j++) {
-			//			GeneticsHandler.mutatePlayer(GeneticsHandler.population.get(i));
-			//		}
-					//GeneticsHandler.population.add(topPlayers.get(i));
-			//	}
-				
+
+
+				//	for(int i = 0; i < 100; i++) {
+				//		for(int j = 0; j < 4; j++) {
+				//			GeneticsHandler.mutatePlayer(GeneticsHandler.population.get(i));
+				//		}
+				//GeneticsHandler.population.add(topPlayers.get(i));
+				//	}
+
 				//CLONE PARENTS, MUTATE PARENTS, AND REPOPULATE
 				//GeneticsHandler.duplicateParents(par1, par2);
 				GeneticsHandler.currentGeneration++;
 				game.player2.rng = new Random("poggers".hashCode());
 				game.state = GameState.training;
-				
+
 				game.gameThisGen = 1;
 				game.validMoves = new ArrayList<ClientMove>();
 				game.selectedPiecexPos = -1;
@@ -114,8 +139,8 @@ public class ClientMenuPostgame {
 				game.player1Turn = true;
 				game.player2.rng = new Random("poggers".hashCode());
 
-				
-				
+
+
 				game.board = new ClientBoard(game.player1);
 				game.board.initialize(game.player1);
 				game.boardInitialized = true;

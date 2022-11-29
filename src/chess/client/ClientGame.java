@@ -748,6 +748,7 @@ public class ClientGame {
 							move = player1.incomingMoveToExecute;
 							player1.incomingMoveToExecute = null;
 						}else {
+							System.out.println("Random move being generated for WHITE!!");
 							move = player1.generateRandomMove(board, player1);
 						}
 
@@ -759,6 +760,20 @@ public class ClientGame {
 							drawCount = 0;
 							incrementDrawCount = false;
 						}
+						
+						
+						/*if(moveCount == 0) {
+							System.out.println("First move by WHITE:");
+							System.out.println(move.piece.type.toString() + " on (" + move.piece.xPos + ", " + move.piece.yPos + ") to (" + move.move.x + ", " + move.move.y + ")" );
+
+						}
+						
+						if(moveCount == 1) {
+							System.out.println("Second move by WHITE:");
+							System.out.println(move.piece.type.toString() + " on (" + move.piece.xPos + ", " + move.piece.yPos + ") to (" + move.move.x + ", " + move.move.y + ")" );
+
+						}*/
+						
 
 						//If the move is an en passant capture, remove the appropriate pawn.
 						if(move.piece.type == PieceType.PAWN) {
@@ -904,6 +919,21 @@ public class ClientGame {
 						if(move == null) {
 							System.out.println("Something has gone wrong.");
 						}
+						
+						/*if(moveCount == 1) {
+							System.out.println("First move by BLACK:");
+							System.out.println(move.piece.type.toString() + " on (" + move.piece.xPos + ", " + move.piece.yPos + ") to (" + move.move.x + ", " + move.move.y + ")" );
+							System.out.println("");
+
+						}
+						
+						if(moveCount == 2) {
+							System.out.println("Second move by BLACK:");
+							System.out.println(move.piece.type.toString() + " on (" + move.piece.xPos + ", " + move.piece.yPos + ") to (" + move.move.x + ", " + move.move.y + ")" );
+							System.out.println("");
+
+						}*/
+						
 						if(move.piece.type == PieceType.PAWN) {
 							drawCount = 0;
 							incrementDrawCount = false;
