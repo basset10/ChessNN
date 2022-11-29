@@ -97,7 +97,7 @@ public class ClientMenuPostgame {
 
 					for(int i = 0; i < 500; i++) {
 						GeneticsHandler.population.add(new ClientPlayer("", false));
-						GeneticsHandler.population.get(i).decisionNet = Network.deepCopy(championNetwork);
+						GeneticsHandler.population.get(i).decisionNet.deepCopy(championNetwork);
 					}
 				}
 				//int remaining = 500 - topPlayers.size();
