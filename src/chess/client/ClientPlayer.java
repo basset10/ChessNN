@@ -23,7 +23,7 @@ public class ClientPlayer {
 
 	public float fitness;
 	public Network decisionNet = null;
-	public Random rng = new Random();
+	public Random rng = new Random("poggers".hashCode());
 
 	//If this is NOT null, an AI player will executed the queued move on the following possible frame, then reset this to null.
 	public AiMove incomingMoveToExecute = null;
@@ -44,7 +44,26 @@ public class ClientPlayer {
 		id = idArg;
 		color = PlayerColor.NONE;
 		//input, hidden, output
-		decisionNet = new Network(256,64,64,256);
+	}
+	
+	public ClientPlayer(String idArg, boolean humanArg, Network networkArg) {
+		decisionNet = networkArg;
+		fitness = 10000;
+		human = humanArg;
+		id = idArg;
+		color = PlayerColor.NONE;
+		//input, hidden, output
+	}
+	
+	public void clone(ClientPlayer oldPlayer) {
+		fitness = oldPlayer.fitness;
+		decisionNet = Network.deepCopy(oldPlayer.decisionNet);
+		rng = new Random("poggers".hashCode());
+		incomingMoveToExecute = oldPlayer.incomingMoveToExecute;
+		color = oldPlayer.color;
+		human = oldPlayer.human;
+		id = oldPlayer.id;
+		
 	}
 
 	//Used for AI players

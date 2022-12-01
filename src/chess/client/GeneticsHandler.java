@@ -14,7 +14,7 @@ import chess.client.ClientPlayer.PlayerColor;
 
 public class GeneticsHandler {
 	//Games are played and displayed one at a time.
-	public static final int GAMES_PER_GENERATION = 500;
+	public static final int GAMES_PER_GENERATION = 100;
 
 	public static int currentGeneration = 1;
 	public static ArrayList<ClientPlayer> population;
@@ -23,7 +23,9 @@ public class GeneticsHandler {
 
 	// public static Player hero;
 
-	public static void init() {
+	public static void init(ClientGame game) {
+
+		
 		population = new ArrayList<>();
 		// hero = new Player();
 		// hero.fitness = 100;

@@ -10,9 +10,12 @@ import java.util.ArrayList;
 import org.lwjgl.opengl.Display;
 import org.newdawn.slick.Color;
 
+import com.samuel.Network;
+
 import chess.client.ClientGame;
 import chess.client.ClientGame.GameState;
 import chess.client.ClientLoader;
+import chess.client.ClientPlayer;
 
 public class ClientMenuMain {
 	
@@ -43,7 +46,9 @@ public class ClientMenuMain {
 			System.out.println("Playing as " + color.toString());
 		}));
 		buttons.add(new ClientButton(300, 100, Display.getWidth()/2f, Display.getHeight()/2f+230, "Train AI", () ->{
+
 			game.state = GameState.training;
+
 			ClientGame.training = true;
 		}));
 	}

@@ -19,6 +19,7 @@ import org.newdawn.slick.Color;
 import com.osreboot.ridhvl2.HvlConfig;
 import com.osreboot.ridhvl2.HvlMath;
 import com.osreboot.ridhvl2.painter.HvlCircle;
+import com.samuel.Network;
 
 import chess.client.ClientPiece.PieceColor;
 import chess.client.ClientPiece.PieceType;
@@ -101,7 +102,6 @@ public class ClientGame {
 		player1 = new ClientPlayer(id, true);
 		player2 = new ClientPlayer(id, true);
 
-
 		if(debug) {
 
 		}
@@ -178,7 +178,7 @@ public class ClientGame {
 				board = new ClientBoard(player1);
 				board.initialize(player1);
 				boardInitialized = true;
-				GeneticsHandler.init();
+				GeneticsHandler.init(this);
 			}
 			board.update(delta, player1);
 			drawValidMoves();
@@ -646,7 +646,10 @@ public class ClientGame {
 					moveCount = 0;
 					promotionUI = false;
 					//System.out.println("Re-Initializing Board!");
-					player1 = GeneticsHandler.population.get(gameThisGen-1);
+					//if(game.player1.color == ClientPlayer.PlayerColor.WHITE) {
+					//	game.player1.decisionNet = new Network(256,128,256);
+					//}
+					player1.clone(GeneticsHandler.population.get(gameThisGen-1));
 					player1.color = PlayerColor.WHITE;
 					player2.color = PlayerColor.BLACK;
 					player1Turn = true;
@@ -655,7 +658,6 @@ public class ClientGame {
 					board = new ClientBoard(player1);
 					board.initialize(player1);
 					boardInitialized = true;
-					player2.rng = new Random("poggers".hashCode());
 					state = GameState.training;
 				}else {
 
@@ -674,21 +676,25 @@ public class ClientGame {
 					hvlFont(0).drawc("White won " + whiteWinCount + " games this generation. ( " + ((float)whiteWinCount/(float)GeneticsHandler.GAMES_PER_GENERATION)*100 + " percent )  [ " + totalWhiteWinCount + " total wins ]" , Display.getWidth()/2, Display.getHeight()-100, 1.2f);
 					hvlFont(0).drawc("Black won " + blackWinCount + " games this generation. ( " + ((float)blackWinCount/(float)GeneticsHandler.GAMES_PER_GENERATION)*100 + " percent )  [ " + totalBlackWinCount + " total wins ]", Display.getWidth()/2, Display.getHeight()-66, 1.2f);
 					hvlFont(0).drawc(stalemateCount + " games ended in stalemate this generation. ( " + ((float)stalemateCount/(float)GeneticsHandler.GAMES_PER_GENERATION)*100 + " percent )  [ " + totalStalemateCount + " total stalemates ]", Display.getWidth()/2, Display.getHeight()-33, 1.2f);
-					float total = 0;
-					
-						for(ClientPlayer c : GeneticsHandler.population) {
-							total += c.getFitness();
-						}
-						//System.out.println("AVERAGE FITNESS: " + total/GeneticsHandler.GAMES_PER_GENERATION);
-					
-					
+					//float total = 0;
+
+					//	for(ClientPlayer c : GeneticsHandler.population) {
+					//		total += c.getFitness();
+					//	}
+					//System.out.println("AVERAGE FITNESS: " + total/GeneticsHandler.GAMES_PER_GENERATION);
+
+
 
 				}
 			}
 			if(!boardInitialized) {
-				//System.out.println("Initializing Board!");
-				GeneticsHandler.init();
-				player1 = GeneticsHandler.population.get(gameThisGen-1);
+				GeneticsHandler.init(this);
+				for(ClientPlayer c : GeneticsHandler.population) {
+					c.decisionNet = new Network(256,128,256);
+				}
+
+				System.out.println("Initializing Board!");
+				player1.clone(GeneticsHandler.population.get(gameThisGen-1));
 				player1.color = PlayerColor.WHITE;
 				player2.color = PlayerColor.BLACK;
 				player2.rng = new Random("poggers".hashCode());
@@ -760,20 +766,20 @@ public class ClientGame {
 							drawCount = 0;
 							incrementDrawCount = false;
 						}
-						
-						
+
+
 						/*if(moveCount == 0) {
 							System.out.println("First move by WHITE:");
 							System.out.println(move.piece.type.toString() + " on (" + move.piece.xPos + ", " + move.piece.yPos + ") to (" + move.move.x + ", " + move.move.y + ")" );
 
 						}
-						
+
 						if(moveCount == 1) {
 							System.out.println("Second move by WHITE:");
 							System.out.println(move.piece.type.toString() + " on (" + move.piece.xPos + ", " + move.piece.yPos + ") to (" + move.move.x + ", " + move.move.y + ")" );
 
 						}*/
-						
+
 
 						//If the move is an en passant capture, remove the appropriate pawn.
 						if(move.piece.type == PieceType.PAWN) {
@@ -857,7 +863,7 @@ public class ClientGame {
 						}
 						if(ClientPieceLogic.getCheckState(board, player2)){
 							if(possibleMoves == 0){
-							//	System.out.println("CHECKMATE BY PLAYER 1!");
+								//	System.out.println("CHECKMATE BY PLAYER 1!");
 								finalMove = player1.color;
 								gameEndState = GAME_END_STATE_CHECKMATE;
 								whiteWinCount++;
@@ -867,7 +873,7 @@ public class ClientGame {
 							}
 						}else {
 							if(possibleMoves == 0) {
-							//	System.out.println("STALEMATE!");
+								//	System.out.println("STALEMATE!");
 								gameEndState = GAME_END_STATE_STALEMATE;
 								stalemateCount++;
 								totalStalemateCount++;
@@ -919,21 +925,21 @@ public class ClientGame {
 						if(move == null) {
 							System.out.println("Something has gone wrong.");
 						}
-						
+
 						/*if(moveCount == 1) {
 							System.out.println("First move by BLACK:");
 							System.out.println(move.piece.type.toString() + " on (" + move.piece.xPos + ", " + move.piece.yPos + ") to (" + move.move.x + ", " + move.move.y + ")" );
 							System.out.println("");
 
 						}
-						
+
 						if(moveCount == 2) {
 							System.out.println("Second move by BLACK:");
 							System.out.println(move.piece.type.toString() + " on (" + move.piece.xPos + ", " + move.piece.yPos + ") to (" + move.move.x + ", " + move.move.y + ")" );
 							System.out.println("");
 
 						}*/
-						
+
 						if(move.piece.type == PieceType.PAWN) {
 							drawCount = 0;
 							incrementDrawCount = false;
@@ -1020,7 +1026,7 @@ public class ClientGame {
 						}
 						if(ClientPieceLogic.getCheckState(board, player1)){
 							if(possibleMoves == 0){
-							//	System.out.println("CHECKMATE BY PLAYER 2!");
+								//	System.out.println("CHECKMATE BY PLAYER 2!");
 								finalMove = player2.color;
 								gameEndState = GAME_END_STATE_CHECKMATE;
 								blackWinCount++;
@@ -1042,7 +1048,7 @@ public class ClientGame {
 							drawCount++;
 						}
 						if(drawCount >= 50) {
-						//	System.out.println("STALEMATE!");
+							//	System.out.println("STALEMATE!");
 							gameEndState = GAME_END_STATE_STALEMATE;
 							stalemateCount++;
 							totalStalemateCount++;

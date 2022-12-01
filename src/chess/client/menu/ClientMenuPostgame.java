@@ -58,7 +58,7 @@ public class ClientMenuPostgame {
 
 				//Number of winners not always increasing - perhaps black is not using seeded movement every generation
 				
-				int count = 1;
+			/*	int count = 1;
 				for(ClientPlayer c : GeneticsHandler.population) {
 					System.out.println("Network " + count);
 					System.out.println("Bias:");
@@ -70,24 +70,24 @@ public class ClientMenuPostgame {
 					System.out.println();
 					count++;
 					
-				}
+				}*/
 				
 				
 				if(GeneticsHandler.currentGeneration == 1) {
 
-					ArrayList<ClientPlayer>topPlayers = new ArrayList<ClientPlayer>();
+					//ArrayList<ClientPlayer>topPlayers = new ArrayList<ClientPlayer>();
 			
-					Network championNetwork = null;
+					ClientPlayer championNetwork = new ClientPlayer("", false);
 					float championFitness = 1;
 
 					for(ClientPlayer c : GeneticsHandler.population) {
 						if(c.getFitness() <= championFitness) {
-							championNetwork = Network.deepCopy(c.decisionNet);
+							championNetwork.setNetwork(Network.deepCopy(c.decisionNet));
 							championFitness = c.getFitness();
 						}
 					}
 
-					System.out.println(topPlayers.size() + " players with fitness less than 1");
+					System.out.println("Best Fitness: " + championFitness);
 
 					GeneticsHandler.population.clear();
 
@@ -95,9 +95,9 @@ public class ClientMenuPostgame {
 					GeneticsHandler.population.add(c);
 				}*/
 
-					for(int i = 0; i < 500; i++) {
-						GeneticsHandler.population.add(new ClientPlayer("", false));
-						GeneticsHandler.population.get(i).decisionNet.deepCopy(championNetwork);
+					for(int i = 0; i < 100; i++) {
+						ClientPlayer x = new ClientPlayer("", false, Network.deepCopy(championNetwork.decisionNet));
+						GeneticsHandler.populate(x);
 					}
 				}
 				//int remaining = 500 - topPlayers.size();
@@ -133,7 +133,7 @@ public class ClientMenuPostgame {
 				game.moveCount = 0;
 				game.promotionUI = false;
 				System.out.println("Start Generation " + GeneticsHandler.currentGeneration);
-				game.player1 = GeneticsHandler.population.get(game.gameThisGen-1);
+				game.player1.clone(GeneticsHandler.population.get(game.gameThisGen-1));
 				game.player1.color = PlayerColor.WHITE;
 				game.player2.color = PlayerColor.BLACK;
 				game.player1Turn = true;
@@ -151,7 +151,7 @@ public class ClientMenuPostgame {
 			}else {
 				game.state = GameState.playingHuman;
 			}
-			game.reset();
+
 		}));
 		buttons.add(new ClientButton(230, 90, Display.getWidth()/2f+450, Display.getHeight()/2f+100, "Main Menu", () ->{
 			game.reset();
