@@ -169,12 +169,12 @@ public class GeneticsHandler {
 				for (int i = 0; i < p.decisionNet.layers.get(l).nodes.get(n).connectionWeights.size(); i++) {
 					Random rng = new Random();
 					double rand = rng.nextDouble();
-					if (rand < 0.01) {
+					if (rand < 0.001) {
 						p.decisionNet.layers.get(l).nodes.get(n).connectionWeights.put(i, (float) Math.random());
 					}
 				}
 				double biasRand = Math.random();
-				if (biasRand < 0.01) {
+				if (biasRand < 0.001) {
 					p.decisionNet.layers.get(l).nodes.get(n).bias = (float) Math.random();
 				}
 			}
