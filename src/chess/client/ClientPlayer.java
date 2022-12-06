@@ -43,6 +43,7 @@ public class ClientPlayer {
 		human = humanArg;
 		id = idArg;
 		color = PlayerColor.NONE;
+		decisionNet = new Network(256, 128, 256);
 		//input, hidden, output
 	}
 	

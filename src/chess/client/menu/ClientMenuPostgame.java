@@ -13,6 +13,7 @@ import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.Display;
 import org.newdawn.slick.Color;
 
+import com.osreboot.ridhvl2.HvlMath;
 import com.samuel.Network;
 
 import chess.common.Util;
@@ -27,6 +28,8 @@ import chess.client.GeneticsHandler;
 
 public class ClientMenuPostgame {
 
+	public static Network championNetwork = null;
+
 	private ArrayList<ClientButton> buttons;
 
 	public ClientMenuPostgame(ClientGame game) {
@@ -36,86 +39,30 @@ public class ClientMenuPostgame {
 			if(ClientGame.training) {
 				//If every game this generation has been played...
 
-				//ArrayList<ClientPlayer>topPlayers = new ArrayList<ClientPlayer>();
-				//Collections.sort(GeneticsHandler.population, GeneticsHandler.compareByScore);
+				int topPercent = GeneticsHandler.GAMES_PER_GENERATION/10;
+
+				System.out.println("White won " + ((float)game.whiteWinCount/(float)GeneticsHandler.GAMES_PER_GENERATION)*100 + "% on generation " + GeneticsHandler.currentGeneration);
+
+				Collections.sort(GeneticsHandler.population, GeneticsHandler.compareByScore);
 
 
-
-
-
-				//	for(int i = 0; i < 100; i++) {
-				//		topPlayers.add(GeneticsHandler.population.get(i));
-				//	}
-				//ClientPlayer par1 = GeneticsHandler.population.get(0);
-				//ClientPlayer par2 = GeneticsHandler.population.get(1);
-				/*
-				for(int p = 2; p < GeneticsHandler.population.size(); p++) {
-					Network.deleteNetwork(GeneticsHandler.population.get(p).decisionNet);
+				int chosenAgent1 = HvlMath.randomInt(0, topPercent-1);
+				ClientPlayer par1 = GeneticsHandler.population.get(chosenAgent1);
+				System.out.println(GeneticsHandler.population.get(chosenAgent1).fitness);
+				int chosenAgent2 = HvlMath.randomInt(0, topPercent-1);
+				while(chosenAgent1 == chosenAgent2) {
+					chosenAgent2 = HvlMath.randomInt(0, topPercent-1);
 				}
-				 */
-				//GeneticsHandler.oldPop = new ArrayList<ClientPlayer>(GeneticsHandler.population);
+				ClientPlayer par2 = GeneticsHandler.population.get(chosenAgent2);
+				System.out.println(GeneticsHandler.population.get(chosenAgent2).fitness);
 
 
-				//Number of winners not always increasing - perhaps black is not using seeded movement every generation
-				
-			/*	int count = 1;
-				for(ClientPlayer c : GeneticsHandler.population) {
-					System.out.println("Network " + count);
-					System.out.println("Bias:");
-					System.out.println(c.decisionNet.layers.get(1).nodes.get(0).bias);
-					System.out.println("First Weight: ");
-					System.out.println(c.decisionNet.layers.get(1).nodes.get(0).connectionWeights.get(0));
-					System.out.println("Type:");
-					System.out.println(c.decisionNet.layers.get(1).nodes.get(0).type);
-					System.out.println();
-					count++;
-					
-				}*/
-				
-				
-				if(GeneticsHandler.currentGeneration == 1) {
-
-					//ArrayList<ClientPlayer>topPlayers = new ArrayList<ClientPlayer>();
-			
-					ClientPlayer championNetwork = new ClientPlayer("", false);
-					float championFitness = 1;
-
-					for(ClientPlayer c : GeneticsHandler.population) {
-						if(c.getFitness() <= championFitness) {
-							championNetwork.setNetwork(Network.deepCopy(c.decisionNet));
-							championFitness = c.getFitness();
-						}
-					}
-
-					System.out.println("Best Fitness: " + championFitness);
-
-					GeneticsHandler.population.clear();
-
-					/*	for(ClientPlayer c : topPlayers) {
-					GeneticsHandler.population.add(c);
-				}*/
-
-					for(int i = 0; i < 100; i++) {
-						ClientPlayer x = new ClientPlayer("", false, Network.deepCopy(championNetwork.decisionNet));
-						GeneticsHandler.populate(x);
-					}
-				}
-				//int remaining = 500 - topPlayers.size();
-
-				//for(int i = 0; i < remaining; i++) {
-				//	GeneticsHandler.populate(new ClientPlayer("", false));
-				//}
+				//championNetwork = Network.deepCopy(par1.decisionNet);
+				GeneticsHandler.oldPop = new ArrayList<ClientPlayer>(GeneticsHandler.population);
+				GeneticsHandler.population.clear();					
+				GeneticsHandler.duplicateParents(par1, par2);
 
 
-				//	for(int i = 0; i < 100; i++) {
-				//		for(int j = 0; j < 4; j++) {
-				//			GeneticsHandler.mutatePlayer(GeneticsHandler.population.get(i));
-				//		}
-				//GeneticsHandler.population.add(topPlayers.get(i));
-				//	}
-
-				//CLONE PARENTS, MUTATE PARENTS, AND REPOPULATE
-				//GeneticsHandler.duplicateParents(par1, par2);
 				GeneticsHandler.currentGeneration++;
 				game.player2.rng = new Random("poggers".hashCode());
 				game.state = GameState.training;
@@ -132,7 +79,7 @@ public class ClientMenuPostgame {
 				game.finalMove = null;
 				game.moveCount = 0;
 				game.promotionUI = false;
-				System.out.println("Start Generation " + GeneticsHandler.currentGeneration);
+				//System.out.println("Start Generation " + GeneticsHandler.currentGeneration);
 				game.player1.clone(GeneticsHandler.population.get(game.gameThisGen-1));
 				game.player1.color = PlayerColor.WHITE;
 				game.player2.color = PlayerColor.BLACK;

@@ -14,7 +14,7 @@ import chess.client.ClientPlayer.PlayerColor;
 
 public class GeneticsHandler {
 	//Games are played and displayed one at a time.
-	public static final int GAMES_PER_GENERATION = 100;
+	public static final int GAMES_PER_GENERATION = 400;
 
 	public static int currentGeneration = 1;
 	public static ArrayList<ClientPlayer> population;
@@ -167,12 +167,12 @@ public class GeneticsHandler {
 			for (int n = 0; n < p.decisionNet.layers.get(l).numNodes; n++) {
 				for (int i = 0; i < p.decisionNet.layers.get(l).nodes.get(n).connectionWeights.size(); i++) {
 					double rand = Math.random();
-					if (rand < 0.05) {
+					if (rand < 0.018) {
 						p.decisionNet.layers.get(l).nodes.get(n).connectionWeights.put(i, (float) Math.random());
 					}
 				}
 				double biasRand = Math.random();
-				if (biasRand < 0.05) {
+				if (biasRand < 0.018) {
 					p.decisionNet.layers.get(l).nodes.get(n).bias = (float) Math.random();
 				}
 			}

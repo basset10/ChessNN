@@ -26,6 +26,7 @@ import chess.client.ClientPiece.PieceType;
 import chess.client.ClientPlayer.PlayerColor;
 import chess.client.menu.ClientMenuMain;
 import chess.client.menu.ClientMenuManager;
+import chess.client.menu.ClientMenuPostgame;
 import chess.common.Util;
 
 public class ClientGame {
@@ -288,7 +289,7 @@ public class ClientGame {
 
 										if(player1.color == PlayerColor.BLACK) {																						
 											//If the move is a promotion, upgrade the pawn.
-											if(p.yPos == 7 && p.type==PieceType.PAWN) {
+											if(p.yPos == 3 && p.type==PieceType.PAWN) {
 												promotionUI = true;
 												validMoves.clear();
 												escape = true;
@@ -503,7 +504,16 @@ public class ClientGame {
 						}
 
 						//Generate the move...
-						AiMove move = player2.generateRandomMove(board, player2);
+
+						AiMove move = null;
+
+						if(ClientMenuPostgame.championNetwork!=null) {
+							player2.decisionNet = Network.deepCopy(ClientMenuPostgame.championNetwork);
+							System.out.println("Champion network generating move");
+							move = player2.readOutputLayer(board);
+						}else {
+							move = player2.generateRandomMove(board, player2);
+						}
 						if(move == null) {
 							System.out.println("Something has gone wrong.");
 						}
@@ -553,7 +563,7 @@ public class ClientGame {
 						if(player2.color == PlayerColor.BLACK) {																						
 							//If the move is a promotion, upgrade the pawn.
 							//All AI promotions are queens
-							if(move.piece.yPos == 7 && move.piece.type==PieceType.PAWN) {							
+							if(move.piece.yPos == 3 && move.piece.type==PieceType.PAWN) {							
 								board.getPieceAt(move.piece.xPos, move.piece.yPos).type = PieceType.QUEEN;							
 							}
 
