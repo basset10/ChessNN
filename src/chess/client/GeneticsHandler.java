@@ -14,7 +14,7 @@ import chess.client.ClientPlayer.PlayerColor;
 
 public class GeneticsHandler {
 	//Games are played and displayed one at a time.
-	public static final int GAMES_PER_GENERATION = 400;
+	public static final int GAMES_PER_GENERATION = 100;
 
 	public static int currentGeneration = 1;
 	public static ArrayList<ClientPlayer> population;
@@ -25,7 +25,7 @@ public class GeneticsHandler {
 
 	public static void init(ClientGame game) {
 
-		
+
 		population = new ArrayList<>();
 		// hero = new Player();
 		// hero.fitness = 100;
@@ -59,7 +59,7 @@ public class GeneticsHandler {
 		if(g.gameEndState == ClientGame.GAME_END_STATE_CHECKMATE && g.finalMove == PlayerColor.WHITE) {
 			return (float)g.moveCount/1000;
 		}else if(g.gameEndState == ClientGame.GAME_END_STATE_STALEMATE) {
-			return (float)g.moveCount;
+			return 10000f;
 		}else{
 			return 10000f;
 		}
@@ -142,7 +142,8 @@ public class GeneticsHandler {
 		for (int l = 0; l < child.decisionNet.layers.size(); l++) {
 			for (int n = 0; n < child.decisionNet.layers.get(l).numNodes; n++) {
 				for (int i = 0; i < child.decisionNet.layers.get(l).nodes.get(n).connectionWeights.size(); i++) {
-					double rand = Math.random();
+					Random rng = new Random();
+					double rand = rng.nextDouble();
 					if (rand < 0.5 + geneticBias) {
 						child.decisionNet.layers.get(l).nodes.get(n).connectionWeights.put(i,
 								c1.decisionNet.layers.get(l).nodes.get(n).connectionWeights.get(i));
@@ -166,13 +167,14 @@ public class GeneticsHandler {
 		for (int l = 0; l < p.decisionNet.layers.size(); l++) {
 			for (int n = 0; n < p.decisionNet.layers.get(l).numNodes; n++) {
 				for (int i = 0; i < p.decisionNet.layers.get(l).nodes.get(n).connectionWeights.size(); i++) {
-					double rand = Math.random();
-					if (rand < 0.018) {
+					Random rng = new Random();
+					double rand = rng.nextDouble();
+					if (rand < 0.01) {
 						p.decisionNet.layers.get(l).nodes.get(n).connectionWeights.put(i, (float) Math.random());
 					}
 				}
 				double biasRand = Math.random();
-				if (biasRand < 0.018) {
+				if (biasRand < 0.01) {
 					p.decisionNet.layers.get(l).nodes.get(n).bias = (float) Math.random();
 				}
 			}

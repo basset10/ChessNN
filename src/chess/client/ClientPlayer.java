@@ -43,7 +43,7 @@ public class ClientPlayer {
 		human = humanArg;
 		id = idArg;
 		color = PlayerColor.NONE;
-		decisionNet = new Network(256, 128, 256);
+		decisionNet = new Network(256, 64, 64, 256);
 		//input, hidden, output
 	}
 	
@@ -59,7 +59,7 @@ public class ClientPlayer {
 	public void clone(ClientPlayer oldPlayer) {
 		fitness = oldPlayer.fitness;
 		decisionNet = Network.deepCopy(oldPlayer.decisionNet);
-		rng = new Random("poggers".hashCode());
+		//rng = new Random("poggers".hashCode());
 		incomingMoveToExecute = oldPlayer.incomingMoveToExecute;
 		color = oldPlayer.color;
 		human = oldPlayer.human;

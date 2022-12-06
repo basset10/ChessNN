@@ -169,7 +169,7 @@ public class ClientGame {
 				}else if(ClientMenuMain.color == ClientMenuMain.ColorSelection.WHITE) {
 					player1.color = PlayerColor.WHITE;
 					player2.color = PlayerColor.BLACK;
-					player2.rng = new Random("poggers".hashCode());
+					//player2.rng = new Random("poggers".hashCode());
 					player1Turn = true;
 				}else if(ClientMenuMain.color == ClientMenuMain.ColorSelection.BLACK) {
 					player1.color = PlayerColor.BLACK;
@@ -700,7 +700,7 @@ public class ClientGame {
 			if(!boardInitialized) {
 				GeneticsHandler.init(this);
 				for(ClientPlayer c : GeneticsHandler.population) {
-					c.decisionNet = new Network(256,128,256);
+					c.decisionNet = new Network(256, 64, 64 ,256);
 				}
 
 				System.out.println("Initializing Board!");

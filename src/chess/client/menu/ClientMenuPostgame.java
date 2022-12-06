@@ -38,7 +38,8 @@ public class ClientMenuPostgame {
 		buttons.add(new ClientButton(230, 90, Display.getWidth()/2f+450, Display.getHeight()/2f-100, "Next Generation", () ->{
 			if(ClientGame.training) {
 				//If every game this generation has been played...
-
+				
+				
 				int topPercent = GeneticsHandler.GAMES_PER_GENERATION/10;
 
 				System.out.println("White won " + ((float)game.whiteWinCount/(float)GeneticsHandler.GAMES_PER_GENERATION)*100 + "% on generation " + GeneticsHandler.currentGeneration);
@@ -61,6 +62,8 @@ public class ClientMenuPostgame {
 				GeneticsHandler.oldPop = new ArrayList<ClientPlayer>(GeneticsHandler.population);
 				GeneticsHandler.population.clear();					
 				GeneticsHandler.duplicateParents(par1, par2);
+				
+				
 
 
 				GeneticsHandler.currentGeneration++;
@@ -84,7 +87,7 @@ public class ClientMenuPostgame {
 				game.player1.color = PlayerColor.WHITE;
 				game.player2.color = PlayerColor.BLACK;
 				game.player1Turn = true;
-				game.player2.rng = new Random("poggers".hashCode());
+				//game.player2.rng = new Random("poggers".hashCode());
 
 
 
