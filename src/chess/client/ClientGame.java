@@ -721,9 +721,9 @@ public class ClientGame {
 					}*/
 
 					hvlFont(0).drawc("GENERATION " + GeneticsHandler.currentGeneration, Display.getWidth()/2, Display.getHeight()-133, 1.2f);
-					hvlFont(0).drawc("White won " + whiteWinCount + " games this generation. ( " + ((float)whiteWinCount/(float)GeneticsHandler.GAMES_PER_GENERATION)*100 + " percent )  [ " + totalWhiteWinCount + " total wins ]" , Display.getWidth()/2, Display.getHeight()-100, 1.2f);
-					hvlFont(0).drawc("Black won " + blackWinCount + " games this generation. ( " + ((float)blackWinCount/(float)GeneticsHandler.GAMES_PER_GENERATION)*100 + " percent )  [ " + totalBlackWinCount + " total wins ]", Display.getWidth()/2, Display.getHeight()-66, 1.2f);
-					hvlFont(0).drawc(stalemateCount + " games ended in stalemate this generation. ( " + ((float)stalemateCount/(float)GeneticsHandler.GAMES_PER_GENERATION)*100 + " percent )  [ " + totalStalemateCount + " total stalemates ]", Display.getWidth()/2, Display.getHeight()-33, 1.2f);
+					hvlFont(0).drawc("White won " + whiteWinCount + " games this generation. ( " + (((float)whiteWinCount/(float)GeneticsHandler.GAMES_PER_GENERATION)*100)/GAMES_PER_AGENT + " percent )  [ " + totalWhiteWinCount + " total wins ]" , Display.getWidth()/2, Display.getHeight()-100, 1.2f);
+					hvlFont(0).drawc("Black won " + blackWinCount + " games this generation. ( " + (((float)blackWinCount/(float)GeneticsHandler.GAMES_PER_GENERATION)*100)/GAMES_PER_AGENT + " percent )  [ " + totalBlackWinCount + " total wins ]", Display.getWidth()/2, Display.getHeight()-66, 1.2f);
+					hvlFont(0).drawc(stalemateCount + " games ended in stalemate this generation. ( " + (((float)stalemateCount/(float)GeneticsHandler.GAMES_PER_GENERATION)*100)/GAMES_PER_AGENT + " percent )  [ " + totalStalemateCount + " total stalemates ]", Display.getWidth()/2, Display.getHeight()-33, 1.2f);
 					//float total = 0;
 
 					//	for(ClientPlayer c : GeneticsHandler.population) {
