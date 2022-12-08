@@ -33,6 +33,10 @@ public class ClientGame {
 
 	boolean autoTrain = false;
 
+	public static final int GAMES_PER_AGENT = 5;
+	public static int currentGenGameCount = 1;
+
+
 	//Always draw the board from Player 1's perspective.
 	//If a human player is present, they will always be Player 1.
 	//Create two separate game cases - AIvAI and PvAI
@@ -642,33 +646,67 @@ public class ClientGame {
 				//LOOP FOR NUMBER OF GAMES PER GENERATION
 				GeneticsHandler.population.get(gameThisGen-1).fitness = GeneticsHandler.calcFitness(player1, this);
 				if(gameThisGen < GeneticsHandler.GAMES_PER_GENERATION) {
-					//Switch to next player in population and reset
-					gameThisGen++;
-					validMoves = new ArrayList<ClientMove>();
-					selectedPiecexPos = -1;
-					selectedPieceyPos = -1;
-					drawCount = 0;
-					incrementDrawCount = true;
-					//state = GameState.menu;
-					inCheck = false;
-					gameEndState = GAME_END_STATE_CONTINUE;
-					finalMove = null;
-					moveCount = 0;
-					promotionUI = false;
-					//System.out.println("Re-Initializing Board!");
-					//if(game.player1.color == ClientPlayer.PlayerColor.WHITE) {
-					//	game.player1.decisionNet = new Network(256,128,256);
-					//}
-					player1.clone(GeneticsHandler.population.get(gameThisGen-1));
-					player1.color = PlayerColor.WHITE;
-					player2.color = PlayerColor.BLACK;
-					player1Turn = true;
 
-					player2.rng = new Random("poggers".hashCode());
-					board = new ClientBoard(player1);
-					board.initialize(player1);
-					boardInitialized = true;
-					state = GameState.training;
+					if(currentGenGameCount == GAMES_PER_AGENT) {
+						currentGenGameCount = 1;
+						player1.fitnessCount.add(player1.fitness);
+						float allFitness = 0;
+						for(Float f : player1.fitnessCount) {
+							allFitness += f;
+						}
+						player1.fitness = allFitness/GAMES_PER_AGENT;
+						
+						//Switch to next player in population and reset
+						gameThisGen++;
+						validMoves = new ArrayList<ClientMove>();
+						selectedPiecexPos = -1;
+						selectedPieceyPos = -1;
+						drawCount = 0;
+						incrementDrawCount = true;
+						//state = GameState.menu;
+						inCheck = false;
+						gameEndState = GAME_END_STATE_CONTINUE;
+						finalMove = null;
+						moveCount = 0;
+						promotionUI = false;
+						//System.out.println("Re-Initializing Board!");
+						//if(game.player1.color == ClientPlayer.PlayerColor.WHITE) {
+						//	game.player1.decisionNet = new Network(256,128,256);
+						//}
+						player1.clone(GeneticsHandler.population.get(gameThisGen-1));
+						player1.color = PlayerColor.WHITE;
+						player2.color = PlayerColor.BLACK;
+						player1Turn = true;
+
+						player2.rng = new Random();
+						board = new ClientBoard(player1);
+						board.initialize(player1);
+						boardInitialized = true;
+						state = GameState.training;
+					}else {
+						currentGenGameCount++;
+						player1.fitnessCount.add(player1.fitness);
+						validMoves = new ArrayList<ClientMove>();
+						selectedPiecexPos = -1;
+						selectedPieceyPos = -1;
+						drawCount = 0;
+						incrementDrawCount = true;
+						//state = GameState.menu;
+						inCheck = false;
+						gameEndState = GAME_END_STATE_CONTINUE;
+						finalMove = null;
+						moveCount = 0;
+						promotionUI = false;
+						player1.color = PlayerColor.WHITE;
+						player2.color = PlayerColor.BLACK;
+						player1Turn = true;
+
+						player2.rng = new Random();
+						board = new ClientBoard(player1);
+						board.initialize(player1);
+						boardInitialized = true;
+						state = GameState.training;
+					}
 				}else {
 
 

@@ -24,6 +24,7 @@ public class ClientPlayer {
 	public float fitness;
 	public Network decisionNet = null;
 	public Random rng = new Random("poggers".hashCode());
+	public ArrayList<Float> fitnessCount;
 
 	//If this is NOT null, an AI player will executed the queued move on the following possible frame, then reset this to null.
 	public AiMove incomingMoveToExecute = null;
@@ -39,6 +40,7 @@ public class ClientPlayer {
 	public PlayerColor color;
 
 	public ClientPlayer(String idArg, boolean humanArg) {
+		fitnessCount = new ArrayList<Float>();
 		fitness = 10000;
 		human = humanArg;
 		id = idArg;
@@ -48,6 +50,7 @@ public class ClientPlayer {
 	}
 	
 	public ClientPlayer(String idArg, boolean humanArg, Network networkArg) {
+		fitnessCount = new ArrayList<Float>();
 		decisionNet = networkArg;
 		fitness = 10000;
 		human = humanArg;
@@ -64,6 +67,7 @@ public class ClientPlayer {
 		color = oldPlayer.color;
 		human = oldPlayer.human;
 		id = oldPlayer.id;
+		fitnessCount.clear();
 		
 	}
 
